@@ -25,8 +25,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ThemeMode } from '@/constants/enums/theme.enum';
-import { THEME } from '@/constants/theme';
-import { clearPinUnlockedCookie } from '@/lib/auth/pin';
 import { useNavigation } from '@/lib/contexts/navigation.context';
 import { useActiveMenuItem } from '@/lib/hooks/use-active-menu';
 import { useTheme } from '@/lib/hooks/use-theme';
@@ -39,18 +37,15 @@ export function AppHeader() {
   const currentPage = useActiveMenuItem();
   const PageIcon = currentPage.icon;
 
-  function handleLogout() {
-    clearPinUnlockedCookie();
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
     toast.success('Đã đăng xuất');
     router.replace('/login');
     router.refresh();
   }
 
   return (
-    <header
-      className="sticky top-0 z-30 h-[var(--header-height)] shrink-0 border-b border-border bg-card"
-      style={{ borderTopLeftRadius: THEME.borderRadius.panel, borderTopRightRadius: THEME.borderRadius.panel }}
-    >
+    <header className="sticky top-0 z-30 h-[var(--header-height)] shrink-0 border-b border-border bg-card">
       <div className="flex h-full items-center gap-3 px-4 sm:px-5">
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <MobileNavTrigger />

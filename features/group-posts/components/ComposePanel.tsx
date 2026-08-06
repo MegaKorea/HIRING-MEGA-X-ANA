@@ -3,29 +3,35 @@
 import { Label } from '@/components/ui/label';
 import {
   Select,
-  SelectContent,
+  SelectContentPopper,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import type { RecruitmentCategoryOption } from '@/features/group-posts/api';
+import { ContentEditor } from '@/features/group-posts/components/ContentEditor';
 import { ImagePicker } from '@/features/group-posts/components/ImagePicker';
 import { PostSubmitButton } from '@/features/group-posts/components/PostSubmitButton';
+import { TemplatePickerDialog } from '@/features/group-posts/components/TemplatePickerDialog';
+import type { PostTemplate } from '@/lib/supabase/types/tables';
 
 type ComposePanelProps = {
-  categories: string[];
-  categoriesLoading: boolean;
+  categories: RecruitmentCategoryOption[];
+  categoriesLoading?: boolean;
   category: string | null;
   content: string;
   previewUrl: string | null;
   groupIdsLoading: boolean;
+  groupIdsError?: boolean;
   groupCount: number;
+  groupHint?: string | null;
   submitting: boolean;
   canSubmit: boolean;
   onCategoryChange: (category: string) => void;
   onContentChange: (content: string) => void;
   onImageChange: (file: File | null) => void;
   onClearImage: () => void;
+  onSelectTemplate: (template: PostTemplate) => void;
 };
 
 export function ComposePanel({
@@ -35,20 +41,22 @@ export function ComposePanel({
   content,
   previewUrl,
   groupIdsLoading,
+  groupIdsError,
   groupCount,
+  groupHint,
   submitting,
   canSubmit,
   onCategoryChange,
   onContentChange,
   onImageChange,
   onClearImage,
+  onSelectTemplate,
 }: ComposePanelProps) {
   return (
     <section className="grid min-w-0 gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] sm:gap-5 sm:p-5 md:p-6 lg:rounded-none lg:border-0 lg:border-r lg:border-border lg:p-6 lg:shadow-none xl:p-8">
       <div className="min-w-0">
-        <h2 className="text-base font-semibold text-foreground">Soạn bài</h2>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Nội dung, danh mục và ảnh đăng lên nhóm.
+        <p className="text-sm text-muted-foreground">
+          Chọn đúng thẻ danh mục đã gắn trên Danh sách nhóm (vd: HR).
         </p>
       </div>
 
@@ -62,46 +70,62 @@ export function ComposePanel({
           onValueChange={onCategoryChange}
         >
           <SelectTrigger id="post-category" className="w-full max-w-full bg-background">
-            <SelectValue placeholder="Chọn danh mục nhóm" />
+            <SelectValue placeholder="Chọn thẻ danh mục đã có trên nhóm" />
           </SelectTrigger>
-          <SelectContent
-            position="popper"
-            side="bottom"
-            sideOffset={6}
-            avoidCollisions={false}
-            className="max-h-72 w-[var(--radix-select-trigger-width)]"
-          >
-            {categories.map((item) => (
-              <SelectItem key={item} value={item}>
-                {item}
+          <SelectContentPopper className="w-[var(--radix-select-trigger-width)]">
+            {categories.length === 0 ? (
+              <SelectItem value="__empty" disabled>
+                Chưa có thẻ danh mục trên Danh sách nhóm
               </SelectItem>
-            ))}
-          </SelectContent>
+            ) : (
+              categories.map((item) => (
+                <SelectItem key={item.category} value={item.category}>
+                  {item.category}
+                </SelectItem>
+              ))
+            )}
+          </SelectContentPopper>
         </Select>
         {category ? (
-          <p className="text-xs text-muted-foreground">
+          <p
+            className={
+              groupIdsError || (groupCount === 0 && !groupIdsLoading)
+                ? 'text-xs text-destructive'
+                : 'text-xs text-muted-foreground'
+            }
+          >
             {groupIdsLoading
               ? 'Đang tải danh sách nhóm...'
-              : groupCount > 0
-                ? `Sẽ đăng tới ${groupCount} nhóm thuộc danh mục này.`
-                : 'Danh mục này chưa có Group ID.'}
+              : groupIdsError
+                ? 'Không tải được Group ID. Thử lại hoặc kiểm tra cột is_active trên DB.'
+                : groupCount > 0
+                  ? `Sẽ đăng tới ${groupCount} nhóm thuộc danh mục này.`
+                  : (groupHint ?? 'Danh mục này chưa có Group ID để đăng.')}
           </p>
-        ) : null}
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Danh mục lấy theo nhóm đã gắn ở menu Danh sách nhóm.
+          </p>
+        )}
       </div>
 
       <div className="grid min-w-0 gap-2">
-        <Label htmlFor="post-content">
-          Nội dung <span className="text-destructive">*</span>
-        </Label>
-        <Textarea
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <Label htmlFor="post-content">
+            Nội dung <span className="text-destructive">*</span>
+          </Label>
+          <TemplatePickerDialog
+            category={category}
+            disabled={submitting}
+            onSelect={onSelectTemplate}
+          />
+        </div>
+        <ContentEditor
           id="post-content"
           value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          placeholder="Nhập nội dung bài đăng..."
-          rows={10}
-          className="min-h-40 break-words sm:min-h-56 lg:min-h-72 [overflow-wrap:anywhere]"
+          onChange={onContentChange}
           disabled={submitting}
-          required
+          placeholder="Nhập nội dung bài đăng..."
         />
       </div>
 

@@ -12,10 +12,10 @@ export function BrandLogo({ size = 36, className, priority }: BrandLogoProps) {
   return (
     <span
       className={cn(
-        'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white',
+        'relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-white',
         className,
       )}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, borderRadius: '9999px' }}
     >
       <Image
         src={APP_ICON}

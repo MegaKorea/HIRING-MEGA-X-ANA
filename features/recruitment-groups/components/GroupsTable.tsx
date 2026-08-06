@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/table';
 import { useUpdateRecruitmentGroup } from '@/features/recruitment-groups/hooks';
 import type { RecruitmentGroup } from '@/lib/supabase/types/tables';
+import { facebookGroupUrl } from '@/lib/utils/facebook-group-id';
 import { cn } from '@/lib/utils';
 
 type GroupsTableProps = {
@@ -59,10 +60,6 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function facebookGroupUrl(groupId: string) {
-  return `https://www.facebook.com/groups/${encodeURIComponent(groupId)}`;
-}
-
 function EmptyCell() {
   return <span className="text-muted-foreground/50">—</span>;
 }
@@ -70,7 +67,11 @@ function EmptyCell() {
 function CategoryBadge({ category }: { category: string | null }) {
   if (!category) return <EmptyCell />;
   return (
-    <Badge variant="secondary" className="max-w-full truncate rounded-md font-normal">
+    <Badge
+      variant="secondary"
+      className="max-w-full truncate font-normal"
+      style={{ borderRadius: 9999 }}
+    >
       {category}
     </Badge>
   );
@@ -102,7 +103,7 @@ function LinkChip({ groupId }: { groupId: string | null }) {
       href={facebookGroupUrl(groupId)}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground transition hover:border-primary/30 hover:bg-accent hover:text-accent-foreground"
+      className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-none border border-border bg-background px-2 text-xs font-medium text-foreground transition hover:border-primary/30 hover:bg-accent hover:text-accent-foreground"
     >
       Mở
       <ExternalLink className="size-3 shrink-0 opacity-70" />
@@ -120,7 +121,7 @@ function GroupActions({ group, onEdit, onDelete }: Omit<GroupHandlers, 'onRateCh
           type="button"
           variant="ghost"
           size="icon-sm"
-          className="rounded-lg text-muted-foreground hover:text-foreground"
+          className="rounded-none text-muted-foreground hover:text-foreground"
           aria-label="Thao tác"
         >
           <MoreHorizontal />
@@ -156,7 +157,7 @@ function GroupMobileCard({ group, onEdit, onDelete, onRateChange }: GroupHandler
   ];
 
   return (
-    <article className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+    <article className="min-w-0 overflow-hidden rounded-none border border-border bg-card shadow-[var(--shadow-soft)]">
       <div className="flex items-start gap-3 border-b border-border/70 bg-muted/30 px-4 py-3.5">
         <div className="min-w-0 flex-1">
           <h3 className="break-words text-[15px] font-semibold tracking-tight text-foreground">
@@ -164,7 +165,11 @@ function GroupMobileCard({ group, onEdit, onDelete, onRateChange }: GroupHandler
           </h3>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             {group.category ? (
-              <Badge variant="secondary" className="rounded-md font-normal">
+              <Badge
+                variant="secondary"
+                className="font-normal"
+                style={{ borderRadius: 9999 }}
+              >
                 {group.category}
               </Badge>
             ) : null}
@@ -203,7 +208,7 @@ function GroupsDesktopTable({ groups, onEdit, onDelete, onRateChange }: GroupsTa
   onRateChange: GroupHandlers['onRateChange'];
 }) {
   return (
-    <div className="hidden min-w-0 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] lg:block">
+    <div className="hidden min-w-0 overflow-hidden rounded-none border border-border bg-card shadow-[var(--shadow-soft)] lg:block">
       <Table className="table-fixed">
         <TableHeader>
           <TableRow className="border-border/80 hover:bg-transparent">

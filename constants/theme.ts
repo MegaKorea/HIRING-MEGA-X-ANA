@@ -7,7 +7,6 @@ export const THEME = {
     sm: 8,
     md: 10,
     lg: 14,
-    panel: 28,
   },
   shadow: {
     offset: 2,
@@ -16,7 +15,7 @@ export const THEME = {
     sidebarWidth: 248,
     sidebarCollapsed: 72,
     headerHeight: 64,
-    shellGap: 12,
+    shellGap: 0,
   },
   motion: {
     fast: 0.18,

@@ -3,7 +3,6 @@
 import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { BrandLogo } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { APP_BRAND, APP_MENU, APP_NAME } from '@/constants/menu';
@@ -45,7 +44,7 @@ function NavItems({ compact, onNavigate }: { compact?: boolean; onNavigate?: () 
             type="button"
             variant={isActive ? 'secondary' : 'ghost'}
             className={cn(
-              'h-10 w-full justify-start gap-3 rounded-xl px-3',
+              'h-10 w-full justify-start gap-3 rounded-none px-3',
               compact && 'size-10 justify-center px-0',
               isActive && 'bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground',
             )}
@@ -85,27 +84,29 @@ function NavPanel({
   const toggleCollapsed = useLayoutStore((s) => s.toggleCollapsed);
 
   return (
-    <div className="flex h-full flex-col gap-3 p-3">
-      <div className={cn('px-1 pt-1', compact && 'px-0')}>
+    <div className="flex h-full flex-col">
+      <div
+        className={cn(
+          'flex h-[var(--header-height)] shrink-0 items-center border-b border-border px-3',
+          compact && 'justify-center px-2',
+        )}
+      >
         <BrandMark compact={compact} />
       </div>
 
-      <Separator />
-
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <NavItems compact={compact} onNavigate={onNavigate} />
       </div>
 
       {showCollapse ? (
-        <>
-          <Separator />
+        <div className="shrink-0 border-t border-border p-3">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 className={cn(
-                  'h-10 w-full justify-start gap-3 rounded-xl',
+                  'h-10 w-full justify-start gap-3 rounded-none',
                   compact && 'size-10 justify-center px-0',
                 )}
                 onClick={toggleCollapsed}
@@ -117,7 +118,7 @@ function NavPanel({
             </TooltipTrigger>
             {compact ? <TooltipContent side="right">Mở rộng</TooltipContent> : null}
           </Tooltip>
-        </>
+        </div>
       ) : null}
     </div>
   );
@@ -145,13 +146,10 @@ export function AppSidebar() {
 
   return (
     <aside
-      className="sticky top-0 z-40 hidden h-[calc(100svh-1.5rem)] shrink-0 transition-[width] duration-200 md:block"
+      className="sticky top-0 z-40 hidden h-svh shrink-0 border-r border-border bg-card transition-[width] duration-200 md:block"
       style={{ width }}
     >
-      <div
-        className="flex h-full flex-col overflow-hidden bg-card shadow-sm ring-1 ring-foreground/5"
-        style={{ borderRadius: THEME.borderRadius.panel }}
-      >
+      <div className="flex h-full flex-col overflow-hidden">
         <NavPanel compact={collapsed} showCollapse />
       </div>
     </aside>
@@ -166,7 +164,7 @@ export function MobileNavTrigger() {
       type="button"
       variant="ghost"
       size="icon"
-      className="rounded-md md:hidden"
+      className="rounded-none md:hidden"
       aria-label="Mở menu"
       onClick={() => setMobileOpen(true)}
     >

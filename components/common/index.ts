@@ -1,5 +1,6 @@
 export * from './BrandLogo';
 export * from './EmptyState';
+export * from './ExpandableText';
 export * from './FadeIn';
 export * from './LoadingState';
 export * from './PageHeader';

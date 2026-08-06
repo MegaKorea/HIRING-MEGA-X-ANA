@@ -6,6 +6,9 @@ export type RecruitmentGroup = {
   rate: number | null;
   link: string | null;
   note: string | null;
+  is_active: boolean;
+  cooldown_minutes: number;
+  last_posted_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -15,8 +18,10 @@ export type RecruitmentGroupInsert = {
   category?: string | null;
   group_id?: string | null;
   rate?: number | null;
-  link?: string | null;
   note?: string | null;
+  is_active?: boolean;
+  cooldown_minutes?: number;
+  last_posted_at?: string | null;
 };
 
 export type RecruitmentGroupUpdate = Partial<RecruitmentGroupInsert> & {

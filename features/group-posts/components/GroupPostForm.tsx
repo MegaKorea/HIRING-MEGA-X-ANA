@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,24 +20,51 @@ import {
   useRecruitmentCategories,
 } from '@/features/group-posts/hooks';
 import { useGroupPostDraftStore } from '@/features/group-posts/store';
+import { describeGroupAvailability } from '@/lib/utils/group-availability';
+import { isHtmlContentEmpty } from '@/lib/utils/html-content';
 
 export function GroupPostForm() {
-  const draft = useGroupPostDraftStore();
+  const category = useGroupPostDraftStore((s) => s.category);
+  const content = useGroupPostDraftStore((s) => s.content);
+  const image = useGroupPostDraftStore((s) => s.image);
+  const imageUrl = useGroupPostDraftStore((s) => s.imageUrl);
+  const previewUrl = useGroupPostDraftStore((s) => s.previewUrl);
+  const setCategory = useGroupPostDraftStore((s) => s.setCategory);
+  const setContent = useGroupPostDraftStore((s) => s.setContent);
+  const setImage = useGroupPostDraftStore((s) => s.setImage);
+  const applyTemplate = useGroupPostDraftStore((s) => s.applyTemplate);
+  const clearImage = useGroupPostDraftStore((s) => s.clearImage);
+  const clearDraft = useGroupPostDraftStore((s) => s.clearDraft);
+
   const categoriesQuery = useRecruitmentCategories();
-  const groupIdsQuery = useGroupIdsByCategory(draft.category);
+  const groupIdsQuery = useGroupIdsByCategory(category);
   const createMutation = useCreateGroupPost();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const categories = categoriesQuery.data ?? [];
-  const groupIds = groupIdsQuery.data ?? [];
+  const categories = categoriesQuery.data?.data;
+  const categoryOptions = categories ?? [];
+
+  useEffect(() => {
+    if (category) return;
+    if (!categories || categories.length === 0) return;
+    const preferred =
+      categories.find((item) => item.ready_groups > 0) ??
+      categories.find((item) => item.total_groups > 0) ??
+      categories[0];
+    if (preferred) setCategory(preferred.category);
+  }, [category, categories, setCategory]);
+
+  const groupIds = groupIdsQuery.data?.data ?? [];
+  const groupMeta = groupIdsQuery.data?.meta;
   const submitting = createMutation.isPending;
-  const trimmedContent = draft.content.trim();
+  const hasContent = !isHtmlContentEmpty(content);
   const canSubmit =
     !submitting &&
-    !!trimmedContent &&
-    !!draft.category &&
+    hasContent &&
+    !!category &&
     groupIds.length > 0 &&
-    !groupIdsQuery.isLoading;
+    !groupIdsQuery.isLoading &&
+    !groupIdsQuery.isError;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,16 +73,17 @@ export function GroupPostForm() {
   }
 
   async function handleConfirmPost() {
-    if (!draft.category || !trimmedContent) return;
+    if (!category || !hasContent) return;
 
     await createMutation.mutateAsync({
-      content: trimmedContent,
-      category: draft.category,
-      image: draft.image,
+      content: content.trim(),
+      category,
+      image,
+      imageUrl,
     });
 
     setConfirmOpen(false);
-    draft.clearDraft();
+    clearDraft();
   }
 
   return (
@@ -65,25 +93,28 @@ export function GroupPostForm() {
         onSubmit={handleSubmit}
       >
         <ComposePanel
-          categories={categories}
+          categories={categoryOptions}
           categoriesLoading={categoriesQuery.isLoading}
-          category={draft.category}
-          content={draft.content}
-          previewUrl={draft.previewUrl}
+          category={category}
+          content={content}
+          previewUrl={previewUrl}
           groupIdsLoading={groupIdsQuery.isLoading}
+          groupIdsError={groupIdsQuery.isError}
           groupCount={groupIds.length}
+          groupHint={describeGroupAvailability(groupMeta)}
           submitting={submitting}
           canSubmit={canSubmit}
-          onCategoryChange={draft.setCategory}
-          onContentChange={draft.setContent}
-          onImageChange={draft.setImage}
-          onClearImage={draft.clearImage}
+          onCategoryChange={setCategory}
+          onContentChange={setContent}
+          onImageChange={setImage}
+          onClearImage={clearImage}
+          onSelectTemplate={applyTemplate}
         />
 
         <PreviewPanel
-          content={draft.content}
-          category={draft.category}
-          previewUrl={draft.previewUrl}
+          content={content}
+          category={category}
+          previewUrl={previewUrl}
           groupCount={groupIds.length}
         />
 
@@ -104,14 +135,14 @@ export function GroupPostForm() {
             <AlertDialogDescription>
               Bài sẽ được gửi tới{' '}
               <span className="font-medium text-foreground">{groupIds.length} nhóm</span>
-              {draft.category ? (
+              {category ? (
                 <>
                   {' '}
                   thuộc danh mục{' '}
-                  <span className="font-medium text-foreground">{draft.category}</span>
+                  <span className="font-medium text-foreground">{category}</span>
                 </>
               ) : null}
-              {draft.image ? ' (có ảnh đính kèm)' : ''}. Bạn có chắc muốn tiếp tục?
+              {image ? ' (có ảnh đính kèm)' : ''}. Bạn có chắc muốn tiếp tục?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

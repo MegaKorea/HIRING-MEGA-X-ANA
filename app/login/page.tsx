@@ -17,7 +17,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ThemeMode } from '@/constants/enums/theme.enum';
 import { APP_BRAND, APP_NAME } from '@/constants/menu';
 import { DEFAULT_AUTHENTICATED_ROUTE } from '@/constants/routes';
-import { clearPinUnlockedCookie, setPinUnlockedCookie, verifyPin } from '@/lib/auth/pin';
 import { useTheme } from '@/lib/hooks/use-theme';
 import { cn } from '@/lib/utils';
 
@@ -64,25 +63,32 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
 
     setError(null);
     setSubmitting(true);
 
-    if (!verifyPin(pin)) {
-      clearPinUnlockedCookie();
-      setError('Mã PIN không đúng');
-      toast.error('Mã PIN không đúng');
-      setSubmitting(false);
-      return;
-    }
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin }),
+      });
 
-    setPinUnlockedCookie();
-    toast.success('Đăng nhập thành công');
-    router.replace(DEFAULT_AUTHENTICATED_ROUTE);
-    router.refresh();
+      if (!response.ok) {
+        setError('Mã PIN không đúng');
+        toast.error('Mã PIN không đúng');
+        return;
+      }
+
+      toast.success('Đăng nhập thành công');
+      router.replace(DEFAULT_AUTHENTICATED_ROUTE);
+      router.refresh();
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

@@ -13,14 +13,14 @@ import { getErrorMessage } from '@/lib/utils';
 export function useRecruitmentCategories() {
   return useQuery({
     queryKey: recruitmentCategoriesQueryKey,
-    queryFn: () => listRecruitmentCategories().then((res) => res.data),
+    queryFn: () => listRecruitmentCategories(),
   });
 }
 
 export function useGroupIdsByCategory(category: string | null) {
   return useQuery({
     queryKey: [...recruitmentCategoriesQueryKey, 'group-ids', category ?? ''],
-    queryFn: () => listGroupIdsByCategory(category!).then((res) => res.data),
+    queryFn: () => listGroupIdsByCategory(category!),
     enabled: !!category,
   });
 }

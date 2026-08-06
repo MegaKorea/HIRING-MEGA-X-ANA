@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { Plus, UsersRound } from 'lucide-react';
 import { EmptyState, LoadingState, PageHeader } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { DeleteGroupDialog } from '@/features/recruitment-groups/components/DeleteGroupDialog';
-import { GroupFormDialog } from '@/features/recruitment-groups/components/GroupFormDialog';
 import { GroupsCategoryFilter } from '@/features/recruitment-groups/components/GroupsCategoryFilter';
 import { GroupsPagination } from '@/features/recruitment-groups/components/GroupsPagination';
 import { GroupsTable } from '@/features/recruitment-groups/components/GroupsTable';
@@ -16,6 +17,7 @@ import type { RecruitmentGroup } from '@/lib/supabase/types/tables';
 import { getErrorMessage } from '@/lib/utils';
 
 export default function GroupsPage() {
+  const router = useRouter();
   const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [category, setCategory] = useQueryState(
     'category',
@@ -28,18 +30,13 @@ export default function GroupsPage() {
     RECRUITMENT_GROUPS_PAGE_SIZE,
     categoryFilter,
   );
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<RecruitmentGroup | null>(null);
   const [deleting, setDeleting] = useState<RecruitmentGroup | null>(null);
 
   const groups = data?.data ?? [];
   const meta = data?.meta;
   const total = meta?.total ?? 0;
   const totalPages = meta?.totalPages ?? 1;
-  const categories = meta?.categories ?? [];
-  const hasUncategorized = meta?.hasUncategorized ?? false;
   const hasFilter = !!categoryFilter;
-  const showFilter = categories.length > 0 || hasUncategorized || hasFilter;
 
   useEffect(() => {
     if (!meta) return;
@@ -47,16 +44,6 @@ export default function GroupsPage() {
       void setPage(meta.totalPages);
     }
   }, [meta, page, setPage]);
-
-  function openCreate() {
-    setEditing(null);
-    setFormOpen(true);
-  }
-
-  function openEdit(group: RecruitmentGroup) {
-    setEditing(group);
-    setFormOpen(true);
-  }
 
   async function handleCategoryChange(next: string | null) {
     await setCategory(next ?? '');
@@ -70,18 +57,16 @@ export default function GroupsPage() {
         description="Quản lý các nhóm tuyển dụng trong hệ thống."
         actions={
           <>
-            {showFilter ? (
-              <GroupsCategoryFilter
-                value={categoryFilter}
-                categories={categories}
-                hasUncategorized={hasUncategorized}
-                onChange={handleCategoryChange}
-                disabled={isLoading}
-              />
-            ) : null}
-            <Button onClick={openCreate} className="w-full sm:w-auto">
-              <Plus data-icon="inline-start" />
-              Thêm nhóm
+            <GroupsCategoryFilter
+              value={categoryFilter}
+              onChange={handleCategoryChange}
+              disabled={isLoading}
+            />
+            <Button asChild className="w-full sm:w-auto">
+              <Link href="/groups/new">
+                <Plus data-icon="inline-start" />
+                Thêm nhóm
+              </Link>
             </Button>
           </>
         }
@@ -107,7 +92,9 @@ export default function GroupsPage() {
           title="Chưa có nhóm"
           description="Tạo nhóm đầu tiên để phân loại quy trình tuyển dụng."
           actionLabel="Thêm nhóm"
-          onAction={openCreate}
+          onAction={() => {
+            router.push('/groups/new');
+          }}
         />
       ) : null}
 
@@ -125,7 +112,13 @@ export default function GroupsPage() {
 
       {!isLoading && !isError && groups.length > 0 ? (
         <div className={isFetching ? 'opacity-70 transition-opacity' : undefined}>
-          <GroupsTable groups={groups} onEdit={openEdit} onDelete={setDeleting} />
+          <GroupsTable
+            groups={groups}
+            onEdit={(group) => {
+              router.push(`/groups/${group.id}/edit`);
+            }}
+            onDelete={setDeleting}
+          />
           <GroupsPagination
             page={page}
             totalPages={totalPages}
@@ -137,15 +130,6 @@ export default function GroupsPage() {
           />
         </div>
       ) : null}
-
-      <GroupFormDialog
-        open={formOpen}
-        onOpenChange={(open) => {
-          setFormOpen(open);
-          if (!open) setEditing(null);
-        }}
-        group={editing}
-      />
 
       <DeleteGroupDialog
         group={deleting}

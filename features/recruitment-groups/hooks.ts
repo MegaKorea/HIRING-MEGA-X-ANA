@@ -2,9 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { recruitmentCategoriesQueryKey } from '@/features/group-posts/api';
 import {
   createRecruitmentGroup,
   deleteRecruitmentGroup,
+  getRecruitmentGroup,
   listRecruitmentGroups,
   recruitmentGroupsQueryKey,
   updateRecruitmentGroup,
@@ -20,7 +22,10 @@ type UpdateVariables = {
 };
 
 function invalidateGroups(queryClient: ReturnType<typeof useQueryClient>) {
-  return queryClient.invalidateQueries({ queryKey: recruitmentGroupsQueryKey });
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: recruitmentGroupsQueryKey }),
+    queryClient.invalidateQueries({ queryKey: recruitmentCategoriesQueryKey }),
+  ]);
 }
 
 export function useRecruitmentGroups(
@@ -32,6 +37,14 @@ export function useRecruitmentGroups(
     queryKey: [...recruitmentGroupsQueryKey, page, pageSize, category ?? ''],
     queryFn: () => listRecruitmentGroups({ page, pageSize, category }),
     enabled: pageSize > 0,
+  });
+}
+
+export function useRecruitmentGroup(id: number | null) {
+  return useQuery({
+    queryKey: [...recruitmentGroupsQueryKey, 'detail', id],
+    queryFn: () => getRecruitmentGroup(id!),
+    enabled: id != null && id > 0,
   });
 }
 

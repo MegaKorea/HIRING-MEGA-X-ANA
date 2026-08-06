@@ -3,10 +3,10 @@ import { cookies } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
-export const createClient = async (): Promise<SupabaseClient<Database>> => {
+export const createClient = async (): Promise<SupabaseClient<Database, 'public'>> => {
   const cookieStore = await cookies();
 
-  return createServerClient<Database>(
+  return createServerClient<Database, 'public'>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

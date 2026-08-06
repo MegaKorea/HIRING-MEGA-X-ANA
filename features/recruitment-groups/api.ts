@@ -17,7 +17,6 @@ export type RecruitmentGroupsListMeta = {
   total: number;
   totalPages: number;
   categories: string[];
-  hasUncategorized: boolean;
 };
 
 export type RecruitmentGroupsListResult = {
@@ -32,6 +31,10 @@ export type ListRecruitmentGroupsParams = {
 };
 
 type ItemResponse = { data: RecruitmentGroup };
+
+export function getRecruitmentGroup(id: number) {
+  return api.get<ItemResponse>(`/recruitment-groups/${id}`).then((res) => res.data);
+}
 
 export function listRecruitmentGroups({
   page = 1,

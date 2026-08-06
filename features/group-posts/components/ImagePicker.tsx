@@ -25,18 +25,18 @@ export function ImagePicker({ previewUrl, disabled, onChange, onClear }: ImagePi
     <div className="grid min-w-0 gap-2">
       <Label>Ảnh (tuỳ chọn)</Label>
       {previewUrl ? (
-        <div className="relative w-28 overflow-hidden rounded-xl border border-border sm:w-36">
+        <div className="relative w-full overflow-hidden rounded-xl border border-border">
           {/* eslint-disable-next-line @next/next/no-img-element -- blob preview URL */}
           <img
             src={previewUrl}
             alt="Ảnh đã chọn"
-            className="aspect-square w-full bg-muted/40 object-contain"
+            className="mx-auto max-h-52 w-full bg-muted/40 object-contain sm:max-h-72 lg:max-h-[28rem]"
           />
           <Button
             type="button"
             variant="secondary"
             size="icon-sm"
-            className="absolute top-1.5 right-1.5 rounded-full"
+            className="absolute top-1.5 right-1.5 rounded-md"
             disabled={disabled}
             onClick={onClear}
             aria-label="Xóa ảnh"
@@ -48,15 +48,13 @@ export function ImagePicker({ previewUrl, disabled, onChange, onClear }: ImagePi
         <label
           htmlFor={inputId}
           className={cn(
-            'flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/30 px-3 text-center transition hover:bg-muted/50 sm:h-16',
+            'flex min-h-28 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/30 px-3 py-6 text-center transition hover:bg-muted/50 sm:min-h-36',
             disabled && 'pointer-events-none opacity-60',
           )}
         >
-          <ImagePlus className="size-4 shrink-0 text-muted-foreground" />
-          <span className="text-xs font-medium text-foreground">Chọn ảnh</span>
-          <span className="hidden text-[11px] text-muted-foreground sm:inline">
-            · JPEG/PNG/WebP · tối đa 5MB
-          </span>
+          <ImagePlus className="size-5 shrink-0 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Chọn ảnh</span>
+          <span className="text-[11px] text-muted-foreground">JPEG/PNG/WebP · tối đa 10MB</span>
         </label>
       )}
       <input

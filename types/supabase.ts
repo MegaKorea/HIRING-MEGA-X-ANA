@@ -1,3 +1,4 @@
+import type { PostTemplateTable } from '@/lib/supabase/types/tables/post-template';
 import type { RecruitmentGroupTable } from '@/lib/supabase/types/tables/recruitment-group';
 
 export type Json =
@@ -9,9 +10,13 @@ export type Json =
   | Json[];
 
 export interface Database {
+  __InternalSupabase: {
+    PostgrestVersion: '12';
+  };
   public: {
     Tables: {
       recruitment_group: RecruitmentGroupTable;
+      post_template: PostTemplateTable;
     };
     Views: {
       [_ in never]: never;

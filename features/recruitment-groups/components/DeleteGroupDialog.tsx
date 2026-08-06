@@ -20,11 +20,11 @@ type DeleteGroupDialogProps = {
 };
 
 export function DeleteGroupDialog({ group, open, onOpenChange }: DeleteGroupDialogProps) {
-  const deleteMutation = useDeleteRecruitmentGroup();
+  const { mutateAsync, isPending } = useDeleteRecruitmentGroup();
 
   async function handleDelete() {
     if (!group) return;
-    await deleteMutation.mutateAsync(group.id);
+    await mutateAsync(group.id);
     onOpenChange(false);
   }
 
@@ -34,21 +34,22 @@ export function DeleteGroupDialog({ group, open, onOpenChange }: DeleteGroupDial
         <AlertDialogHeader>
           <AlertDialogTitle>Xóa nhóm?</AlertDialogTitle>
           <AlertDialogDescription>
-            Bạn sắp xóa nhóm <span className="font-medium text-foreground">{group?.name}</span>.
-            Thao tác này không thể hoàn tác.
+            Bạn sắp xóa nhóm{' '}
+            <span className="font-medium text-foreground">{group?.name ?? '—'}</span>. Thao tác
+            này không thể hoàn tác.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>Hủy</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Hủy</AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
-            disabled={deleteMutation.isPending}
+            disabled={isPending || !group}
             onClick={(event) => {
               event.preventDefault();
               void handleDelete();
             }}
           >
-            {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+            {isPending ? 'Đang xóa...' : 'Xóa'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
