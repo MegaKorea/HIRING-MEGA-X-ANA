@@ -42,10 +42,18 @@ export function createGroupPost(input: {
   category: string;
   image?: File | null;
   imageUrl?: string | null;
+  randomContent?: boolean;
 }) {
   const formData = new FormData();
-  formData.append('content', input.content);
   formData.append('category', input.category);
+
+  if (input.randomContent) {
+    // Content + ảnh lấy từ post_template, n8n bốc ngẫu nhiên cho từng nhóm.
+    formData.append('random_content', 'true');
+    return api.post<{ data: CreateGroupPostResult }>('/group-posts', formData);
+  }
+
+  formData.append('content', input.content);
   if (input.image) {
     formData.append('image', input.image);
   } else if (input.imageUrl) {

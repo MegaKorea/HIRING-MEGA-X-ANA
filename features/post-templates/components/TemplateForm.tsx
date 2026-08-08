@@ -64,32 +64,37 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
     router.push('/posts/content');
   }
 
-  async function handleSubmit(event: FormEvent) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!canSubmit) return;
+    const onSuccess = () => router.push('/posts/content');
 
     if (isEdit && template) {
-      await updateMutation.mutateAsync({
-        id: template.id,
-        input: {
+      updateMutation.mutate(
+        {
+          id: template.id,
+          input: {
+            category: form.category as (typeof RECRUITMENT_CATEGORIES)[number],
+            content: form.content,
+            is_active: form.is_active,
+            image: form.image,
+            clear_image: form.clearImage,
+          },
+        },
+        { onSuccess },
+      );
+    } else {
+      createMutation.mutate(
+        {
           category: form.category as (typeof RECRUITMENT_CATEGORIES)[number],
           content: form.content,
+          image_url: '',
           is_active: form.is_active,
           image: form.image,
-          clear_image: form.clearImage,
         },
-      });
-    } else {
-      await createMutation.mutateAsync({
-        category: form.category as (typeof RECRUITMENT_CATEGORIES)[number],
-        content: form.content,
-        image_url: '',
-        is_active: form.is_active,
-        image: form.image,
-      });
+        { onSuccess },
+      );
     }
-
-    router.push('/posts/content');
   }
 
   return (

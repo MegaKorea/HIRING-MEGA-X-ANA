@@ -9,7 +9,10 @@ type GroupPostDraftState = {
   /** Existing hosted URL picked from a saved Content — sent as-is, no re-upload. */
   imageUrl: string | null;
   previewUrl: string | null;
+  /** Bỏ soạn content — n8n random content của danh mục cho từng nhóm. */
+  randomContent: boolean;
   setContent: (content: string) => void;
+  setRandomContent: (randomContent: boolean) => void;
   setCategory: (category: string | null) => void;
   setImage: (file: File | null) => void;
   applyTemplate: (template: { content: string; image_url: string }) => void;
@@ -27,8 +30,11 @@ export const useGroupPostDraftStore = create<GroupPostDraftState>((set, get) => 
   image: null,
   imageUrl: null,
   previewUrl: null,
+  randomContent: false,
 
   setContent: (content) => set({ content }),
+
+  setRandomContent: (randomContent) => set({ randomContent }),
 
   setCategory: (category) => set({ category }),
 
@@ -64,6 +70,7 @@ export const useGroupPostDraftStore = create<GroupPostDraftState>((set, get) => 
       image: null,
       imageUrl: null,
       previewUrl: null,
+      randomContent: false,
     });
   },
 }));

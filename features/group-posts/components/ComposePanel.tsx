@@ -1,6 +1,7 @@
 'use client';
 
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContentPopper,
@@ -27,6 +28,10 @@ type ComposePanelProps = {
   groupHint?: string | null;
   submitting: boolean;
   canSubmit: boolean;
+  randomContent: boolean;
+  templateCount: number;
+  templatesLoading: boolean;
+  onRandomContentChange: (randomContent: boolean) => void;
   onCategoryChange: (category: string) => void;
   onContentChange: (content: string) => void;
   onImageChange: (file: File | null) => void;
@@ -46,6 +51,10 @@ export function ComposePanel({
   groupHint,
   submitting,
   canSubmit,
+  randomContent,
+  templateCount,
+  templatesLoading,
+  onRandomContentChange,
   onCategoryChange,
   onContentChange,
   onImageChange,
@@ -109,32 +118,59 @@ export function ComposePanel({
         )}
       </div>
 
-      <div className="grid min-w-0 gap-2">
-        <div className="flex min-w-0 items-center justify-between gap-2">
-          <Label htmlFor="post-content">
-            Nội dung <span className="text-destructive">*</span>
+      <div className="flex min-w-0 items-start justify-between gap-3 rounded-xl border border-border bg-background/60 p-3">
+        <div className="min-w-0 grid gap-0.5">
+          <Label htmlFor="random-content" className="cursor-pointer">
+            Random content tự động
           </Label>
-          <TemplatePickerDialog
-            category={category}
-            disabled={submitting}
-            onSelect={onSelectTemplate}
-          />
+          <p className="text-xs text-muted-foreground">
+            {randomContent
+              ? templatesLoading
+                ? 'Đang đếm content của danh mục...'
+                : templateCount > 0
+                  ? `Mỗi nhóm nhận 1 content ngẫu nhiên (kèm ảnh) trong ${templateCount} content đang bật.`
+                  : 'Danh mục này chưa có content nào đang bật — bật content ở menu Content trước.'
+              : 'Bật để không phải soạn nội dung — n8n bốc ngẫu nhiên từ Content của danh mục.'}
+          </p>
         </div>
-        <ContentEditor
-          id="post-content"
-          value={content}
-          onChange={onContentChange}
+        <Switch
+          id="random-content"
+          checked={randomContent}
           disabled={submitting}
-          placeholder="Nhập nội dung bài đăng..."
+          onCheckedChange={onRandomContentChange}
         />
       </div>
 
-      <ImagePicker
-        previewUrl={previewUrl}
-        disabled={submitting}
-        onChange={onImageChange}
-        onClear={onClearImage}
-      />
+      {randomContent ? null : (
+        <>
+          <div className="grid min-w-0 gap-2">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <Label htmlFor="post-content">
+                Nội dung <span className="text-destructive">*</span>
+              </Label>
+              <TemplatePickerDialog
+                category={category}
+                disabled={submitting}
+                onSelect={onSelectTemplate}
+              />
+            </div>
+            <ContentEditor
+              id="post-content"
+              value={content}
+              onChange={onContentChange}
+              disabled={submitting}
+              placeholder="Nhập nội dung bài đăng..."
+            />
+          </div>
+
+          <ImagePicker
+            previewUrl={previewUrl}
+            disabled={submitting}
+            onChange={onImageChange}
+            onClear={onClearImage}
+          />
+        </>
+      )}
 
       <div className="hidden justify-end pt-1 lg:flex">
         <PostSubmitButton submitting={submitting} disabled={!canSubmit} />

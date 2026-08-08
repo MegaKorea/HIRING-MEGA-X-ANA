@@ -7,6 +7,7 @@ type PreviewPanelProps = {
   category: string | null;
   previewUrl: string | null;
   groupCount: number;
+  note?: string;
 };
 
 export function PreviewPanel({
@@ -14,6 +15,7 @@ export function PreviewPanel({
   category,
   previewUrl,
   groupCount,
+  note,
 }: PreviewPanelProps) {
   const hasText = !isHtmlContentEmpty(content);
   const hasPreview = hasText || !!previewUrl;
@@ -23,7 +25,7 @@ export function PreviewPanel({
       <div className="mb-4 sm:mb-5">
         <h2 className="text-base font-semibold text-foreground">Xem trước</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Bài đăng sẽ hiển thị như thế này trên nhóm.
+          {note ?? 'Bài đăng sẽ hiển thị như thế này trên nhóm.'}
         </p>
       </div>
 

@@ -20,6 +20,7 @@ import {
   useRecruitmentCategories,
 } from '@/features/group-posts/hooks';
 import { useGroupPostDraftStore } from '@/features/group-posts/store';
+import { usePostTemplates } from '@/features/post-templates/hooks';
 import { describeGroupAvailability } from '@/lib/utils/group-availability';
 import { isHtmlContentEmpty } from '@/lib/utils/html-content';
 
@@ -29,8 +30,10 @@ export function GroupPostForm() {
   const image = useGroupPostDraftStore((s) => s.image);
   const imageUrl = useGroupPostDraftStore((s) => s.imageUrl);
   const previewUrl = useGroupPostDraftStore((s) => s.previewUrl);
+  const randomContent = useGroupPostDraftStore((s) => s.randomContent);
   const setCategory = useGroupPostDraftStore((s) => s.setCategory);
   const setContent = useGroupPostDraftStore((s) => s.setContent);
+  const setRandomContent = useGroupPostDraftStore((s) => s.setRandomContent);
   const setImage = useGroupPostDraftStore((s) => s.setImage);
   const applyTemplate = useGroupPostDraftStore((s) => s.applyTemplate);
   const clearImage = useGroupPostDraftStore((s) => s.clearImage);
@@ -39,6 +42,7 @@ export function GroupPostForm() {
   const categoriesQuery = useRecruitmentCategories();
   const groupIdsQuery = useGroupIdsByCategory(category);
   const createMutation = useCreateGroupPost();
+  const templatesQuery = usePostTemplates(1, category, true, randomContent && !!category);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const categories = categoriesQuery.data?.data;
@@ -57,7 +61,13 @@ export function GroupPostForm() {
   const groupIds = groupIdsQuery.data?.data ?? [];
   const groupMeta = groupIdsQuery.data?.meta;
   const submitting = createMutation.isPending;
-  const hasContent = !isHtmlContentEmpty(content);
+  const templateCount = templatesQuery.data?.meta.total ?? 0;
+  // Random mode không có draft để xem trước — lấy tạm content đầu tiên làm mẫu.
+  const sampleTemplate = randomContent ? templatesQuery.data?.data[0] : undefined;
+  // Random mode: n8n lấy content từ post_template nên form không cần nội dung.
+  const hasContent = randomContent
+    ? templateCount > 0 && !templatesQuery.isLoading
+    : !isHtmlContentEmpty(content);
   const canSubmit =
     !submitting &&
     hasContent &&
@@ -72,18 +82,18 @@ export function GroupPostForm() {
     setConfirmOpen(true);
   }
 
-  async function handleConfirmPost() {
+  function handleConfirmPost() {
     if (!category || !hasContent) return;
 
-    await createMutation.mutateAsync({
-      content: content.trim(),
-      category,
-      image,
-      imageUrl,
-    });
-
-    setConfirmOpen(false);
-    clearDraft();
+    createMutation.mutate(
+      { content: content.trim(), category, image, imageUrl, randomContent },
+      {
+        onSuccess: () => {
+          setConfirmOpen(false);
+          clearDraft();
+        },
+      },
+    );
   }
 
   return (
@@ -104,6 +114,10 @@ export function GroupPostForm() {
           groupHint={describeGroupAvailability(groupMeta)}
           submitting={submitting}
           canSubmit={canSubmit}
+          randomContent={randomContent}
+          templateCount={templateCount}
+          templatesLoading={templatesQuery.isLoading}
+          onRandomContentChange={setRandomContent}
           onCategoryChange={setCategory}
           onContentChange={setContent}
           onImageChange={setImage}
@@ -112,10 +126,15 @@ export function GroupPostForm() {
         />
 
         <PreviewPanel
-          content={content}
+          content={sampleTemplate?.content ?? content}
           category={category}
-          previewUrl={previewUrl}
+          previewUrl={sampleTemplate?.image_url || previewUrl}
           groupCount={groupIds.length}
+          note={
+            randomContent
+              ? `Ví dụ 1 trong ${templateCount} content — mỗi nhóm nhận một content khác nhau.`
+              : undefined
+          }
         />
 
         <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5 lg:hidden">
@@ -142,7 +161,12 @@ export function GroupPostForm() {
                   <span className="font-medium text-foreground">{category}</span>
                 </>
               ) : null}
-              {image ? ' (có ảnh đính kèm)' : ''}. Bạn có chắc muốn tiếp tục?
+              {randomContent
+                ? ` — mỗi nhóm 1 content ngẫu nhiên trong ${templateCount} content đang bật`
+                : image
+                  ? ' (có ảnh đính kèm)'
+                  : ''}
+              . Bạn có chắc muốn tiếp tục?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -151,7 +175,7 @@ export function GroupPostForm() {
               disabled={submitting}
               onClick={(event) => {
                 event.preventDefault();
-                void handleConfirmPost();
+                handleConfirmPost();
               }}
             >
               {submitting ? 'Đang gửi...' : 'Xác nhận đăng'}

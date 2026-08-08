@@ -1,0 +1,476 @@
+{
+  "name": "Groups Auto - Random Content + Post Log",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "groups-auto",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2208,
+        432
+      ],
+      "id": "cb16fe73-992c-48b8-90a1-1bcb49587d3e",
+      "name": "Recruitment Webhook",
+      "webhookId": "b7c1e9d2-4f3a-4c8e-9a11-2f6d8e5b0c31"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nconst body = raw.body ?? raw;\n\nif (body.type !== 'group_post') {\n  throw new Error('type must be \"group_post\", received: ' + body.type);\n}\n\n// App gui contents[]: 1 phan tu = content co dinh, nhieu phan tu = random theo tung nhom.\n// Fallback body.content de payload cu van chay.\nconst rawContents = Array.isArray(body.contents) && body.contents.length\n  ? body.contents\n  : [{ template_id: null, content: body.content, image_url: body.image_url }];\n\nconst contents = rawContents\n  .map(c => ({\n    template_id: c.template_id ?? null,\n    content: String(c.content ?? '').trim(),\n    image_url: c.image_url ? String(c.image_url).trim() : ''\n  }))\n  .filter(c => c.content);\n\nif (contents.length === 0) {\n  throw new Error('contents is empty - khong co content nao de dang');\n}\n\nconst groupIds = Array.isArray(body.group_ids)\n  ? [...new Set(body.group_ids.map(String).map(s => s.trim()).filter(Boolean))]\n  : [];\n\nif (groupIds.length === 0) {\n  throw new Error('group_ids is empty or not an array');\n}\n\n// Default Page ID, or send page_id in the payload\nconst DEFAULT_PAGE_ID = '1095167380349359';\nconst pageId = String(body.page_id || DEFAULT_PAGE_ID).trim();\nif (!pageId) {\n  throw new Error('Missing page_id (posting as a Page requires a Page ID)');\n}\n\nreturn [{\n  json: {\n    run_id: String(body.run_id || $execution.id),\n    category: body.category ?? '',\n    page_id: pageId,\n    group_ids: groupIds,\n    contents\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1984,
+        432
+      ],
+      "id": "2502597f-6f7b-4f8f-b338-875abc41c131",
+      "name": "Prepare Payload"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, accepted: true, message: 'Job accepted, posting in background', run_id: $json.run_id, page_id: $json.page_id, total_groups: $json.group_ids.length, total_contents: $json.contents.length, random_content: $json.contents.length > 1, accepted_at: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1760,
+        432
+      ],
+      "id": "e0e38569-6f92-4d49-8289-18afead91bb3",
+      "name": "Respond Immediately"
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Prepare Payload').first().json;\n\nfunction shuffle(arr) {\n  const a = [...arr];\n  for (let i = a.length - 1; i > 0; i--) {\n    const j = Math.floor(Math.random() * (i + 1));\n    [a[i], a[j]] = [a[j], a[i]];\n  }\n  return a;\n}\n\n// Boc khong hoan lai: het pool moi tron lai -> moi content duoc dung chenh nhau toi da 1 lan,\n// khong don nhieu nhom lien tiep vao cung 1 bai (Facebook gan co spam).\n// Logic mirror tai n8n/assign-contents.mjs (chay: node n8n/assign-contents.mjs).\nlet bag = [];\n\nreturn p.group_ids.map((gid, i) => {\n  if (bag.length === 0) bag = shuffle(p.contents);\n  const pick = bag.pop();\n  return {\n    json: {\n      index: i + 1,\n      total: p.group_ids.length,\n      run_id: p.run_id,\n      category: p.category,\n      page_id: p.page_id,\n      group_id: String(gid),\n      template_id: pick.template_id,\n      content: pick.content,\n      image_url: pick.image_url\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1536,
+        432
+      ],
+      "id": "5235fbfe-f270-4529-802a-7733b25860da",
+      "name": "Build Group List"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1312,
+        432
+      ],
+      "id": "7a16841b-2005-44bf-9ecc-472acb68e61e",
+      "name": "Loop Over Groups"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-has-image-url",
+              "leftValue": "={{ $json.image_url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1088,
+        528
+      ],
+      "id": "d164b4cb-958c-44d2-87b2-4f33c2dfbde3",
+      "name": "Has Image URL?"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "mediaUrl": "={{ $json.image_url }}",
+        "uploadTarget": "page",
+        "pageId": "={{ $json.page_id }}"
+      },
+      "type": "n8n-nodes-social-facebook.facebookPage",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        432
+      ],
+      "id": "506e2b34-5e70-4cc4-b7b1-7ed1cc660260",
+      "name": "Upload Photo",
+      "credentials": {
+        "facebookApiBotzvn": {
+          "id": "G5BaB19O5krpVTnI",
+          "name": "MEGA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Loop Over Groups').first().json;\nconst up = $json || {};\n\nconst mediaId =\n  up.media_id ?? up.photo_id ?? up.fbid ?? up.id ?? up?.data?.id ?? '';\n\nreturn [{ json: { ...src, media_ids: mediaId ? String(mediaId) : '' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        432
+      ],
+      "id": "3f1c07a8-2b64-4f0e-9a55-8c1d2e3f4a5b",
+      "name": "Attach Media"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-has-media-id",
+              "leftValue": "={{ $json.media_ids }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -416,
+        432
+      ],
+      "id": "ad8c37d8-a8d7-40f9-89b2-3e9e1d19e2b7",
+      "name": "Has Media ID?"
+    },
+    {
+      "parameters": {
+        "resource": "group",
+        "operation": "createGroupPostByPage",
+        "pageId": "={{ $json.page_id }}",
+        "groupId": "={{ $json.group_id }}",
+        "contentType": "media",
+        "text": "={{ $json.content }}",
+        "mediaIds": "={{ $json.media_ids }}"
+      },
+      "type": "n8n-nodes-social-facebook.facebookPage",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        336
+      ],
+      "id": "9e00bba6-8654-470a-9ce6-f5b89bec5adb",
+      "name": "Post With Image",
+      "credentials": {
+        "facebookApiBotzvn": {
+          "id": "G5BaB19O5krpVTnI",
+          "name": "MEGA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "group",
+        "operation": "createGroupPostByPage",
+        "pageId": "={{ $json.page_id }}",
+        "groupId": "={{ $json.group_id }}",
+        "text": "={{ $json.content }}"
+      },
+      "type": "n8n-nodes-social-facebook.facebookPage",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        640
+      ],
+      "id": "eca224c9-2e7e-48d7-aadb-8e2d2c81189f",
+      "name": "Post Text Only",
+      "credentials": {
+        "facebookApiBotzvn": {
+          "id": "G5BaB19O5krpVTnI",
+          "name": "MEGA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Loop Over Groups').first().json;\nconst res = $json || {};\n\nconst postId = res.post_id ?? res.story_fbid ?? res.id ?? null;\nconst errMsg = res.error?.message ?? res.error ?? res.message ?? null;\n\n// Ten field duoi day trung ten cot cua public.post_log -> node Supabase auto-map duoc.\nreturn [{\n  json: {\n    run_id: src.run_id,\n    category: src.category,\n    page_id: src.page_id,\n    group_id: src.group_id,\n    template_id: src.template_id ?? null,\n    content: src.content,\n    image_url: src.image_url || '',\n    post_id: postId ? String(postId) : null,\n    ok: Boolean(postId),\n    error: postId ? null : (errMsg ? String(errMsg) : 'No post ID returned')\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        64,
+        432
+      ],
+      "id": "54ca8f56-c937-4be0-ac6a-1c103d8a1e01",
+      "name": "Log Result"
+    },
+    {
+      "parameters": {
+        "tableId": "post_log",
+        "dataToSend": "autoMapInputData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        288,
+        432
+      ],
+      "id": "7c9a1f20-53d8-4b16-9f0c-6d4b8e2a1c77",
+      "name": "Save Log to Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "REPLACE_WITH_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase MEGA"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.floor(Math.random() * 90) + 60 }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        432
+      ],
+      "id": "6621a132-88a7-4349-bbd5-ef78318f746d",
+      "name": "Random Wait 60-150s",
+      "webhookId": "c9f2a3b4-5d6e-4f70-8a91-1b2c3d4e5f60"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst ok = items.filter(i => i.ok);\n\nreturn [{\n  json: {\n    success: ok.length === items.length,\n    run_id: items[0]?.run_id ?? null,\n    total: items.length,\n    posted: ok.length,\n    failed: items.length - ok.length,\n    finished_at: new Date().toISOString(),\n    results: items.map(({ content, ...rest }) => rest)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        240
+      ],
+      "id": "8b650121-4e2e-4110-a65d-b93ee94c9d22",
+      "name": "Summarize Results"
+    }
+  ],
+  "connections": {
+    "Recruitment Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Payload": {
+      "main": [
+        [
+          {
+            "node": "Respond Immediately",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Immediately": {
+      "main": [
+        [
+          {
+            "node": "Build Group List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Group List": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Groups": {
+      "main": [
+        [
+          {
+            "node": "Summarize Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Has Image URL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Image URL?": {
+      "main": [
+        [
+          {
+            "node": "Upload Photo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post Text Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Photo": {
+      "main": [
+        [
+          {
+            "node": "Attach Media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Media": {
+      "main": [
+        [
+          {
+            "node": "Has Media ID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Media ID?": {
+      "main": [
+        [
+          {
+            "node": "Post With Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post Text Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post With Image": {
+      "main": [
+        [
+          {
+            "node": "Log Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Text Only": {
+      "main": [
+        [
+          {
+            "node": "Log Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Result": {
+      "main": [
+        [
+          {
+            "node": "Save Log to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Log to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Random Wait 60-150s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Random Wait 60-150s": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7deffc57fa4bdc879c1f4481db63c29b2210091ed0fc4f5272b17612d3a10243"
+  }
+}

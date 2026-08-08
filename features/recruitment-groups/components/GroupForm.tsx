@@ -89,17 +89,18 @@ export function GroupForm({ group }: GroupFormProps) {
     router.push('/groups');
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const payload = toPayload(form);
+    // ponytail: mutate + onSuccess, not await mutateAsync — mutateAsync rejects on
+    // error and the handler has no catch, which surfaces as an unhandledRejection.
+    const onSuccess = () => router.push('/groups');
 
     if (isEdit && group) {
-      await updateMutation.mutateAsync({ id: group.id, input: payload });
+      updateMutation.mutate({ id: group.id, input: payload }, { onSuccess });
     } else {
-      await createMutation.mutateAsync(payload);
+      createMutation.mutate(payload, { onSuccess });
     }
-
-    router.push('/groups');
   }
 
   return (

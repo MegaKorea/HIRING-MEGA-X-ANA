@@ -20,12 +20,11 @@ type DeleteGroupDialogProps = {
 };
 
 export function DeleteGroupDialog({ group, open, onOpenChange }: DeleteGroupDialogProps) {
-  const { mutateAsync, isPending } = useDeleteRecruitmentGroup();
+  const { mutate, isPending } = useDeleteRecruitmentGroup();
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!group) return;
-    await mutateAsync(group.id);
-    onOpenChange(false);
+    mutate(group.id, { onSuccess: () => onOpenChange(false) });
   }
 
   return (
@@ -46,7 +45,7 @@ export function DeleteGroupDialog({ group, open, onOpenChange }: DeleteGroupDial
             disabled={isPending || !group}
             onClick={(event) => {
               event.preventDefault();
-              void handleDelete();
+              handleDelete();
             }}
           >
             {isPending ? 'Đang xóa...' : 'Xóa'}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { fail } from '@/errors';
 import { HttpStatusCode } from '@/constants/enums';
 import { sendGroupPostWebhook } from '@/features/group-posts/server';
+import { listActiveTemplatesByCategory } from '@/features/post-templates/server';
 import {
   listActiveGroupsByCategory,
   markRecruitmentGroupsPosted,
@@ -10,7 +11,11 @@ import { handleRouteError } from '@/lib/utils';
 import { describeGroupAvailability } from '@/lib/utils/group-availability';
 import { getPlainTextFromHtml } from '@/lib/utils/html-content';
 import { isUploadFile, uploadImageToBucket } from '@/lib/utils/upload-image';
-import { groupPostSchema, type GroupPostWebhookPayload } from '@/lib/validators/group-post';
+import {
+  groupPostSchema,
+  type GroupPostContent,
+  type GroupPostWebhookPayload,
+} from '@/lib/validators/group-post';
 
 export async function POST(request: Request) {
   try {
@@ -23,6 +28,7 @@ export async function POST(request: Request) {
       content: String(formData.get('content') ?? ''),
       category: String(formData.get('category') ?? ''),
       image_url: String(formData.get('image_url') ?? ''),
+      random_content: String(formData.get('random_content') ?? ''),
     });
 
     if (!parsed.success) {
@@ -33,25 +39,51 @@ export async function POST(request: Request) {
       );
     }
 
-    const { groups, meta } = await listActiveGroupsByCategory(parsed.data.category);
+    const { category, random_content } = parsed.data;
+
+    const { groups, meta } = await listActiveGroupsByCategory(category);
     if (groups.length === 0) {
       fail('VALIDATION_ERROR', HttpStatusCode.BAD_REQUEST, describeGroupAvailability(meta));
     }
 
-    const imageEntry = formData.get('image');
-    const imageUrl = isUploadFile(imageEntry)
-      ? await uploadImageToBucket(imageEntry, 'group-posts')
-      : parsed.data.image_url;
+    let contents: GroupPostContent[];
+    if (random_content) {
+      const templates = await listActiveTemplatesByCategory(category);
+      if (templates.length === 0) {
+        fail(
+          'VALIDATION_ERROR',
+          HttpStatusCode.BAD_REQUEST,
+          `Danh mục ${category} chưa có content nào đang bật để random.`,
+        );
+      }
+      contents = templates.map((template) => ({
+        template_id: template.id,
+        content: getPlainTextFromHtml(template.content),
+        image_url: template.image_url ?? '',
+      }));
+    } else {
+      const imageEntry = formData.get('image');
+      const imageUrl = isUploadFile(imageEntry)
+        ? await uploadImageToBucket(imageEntry, 'group-posts')
+        : parsed.data.image_url;
+
+      contents = [
+        {
+          template_id: null,
+          content: getPlainTextFromHtml(parsed.data.content),
+          image_url: imageUrl,
+        },
+      ];
+    }
 
     // listActiveGroupsByCategory only returns groups with a non-empty group_id.
     const groupIds = groups.map((group) => group.group_id!);
-    const plainContent = getPlainTextFromHtml(parsed.data.content);
 
     const payload: GroupPostWebhookPayload = {
-      content: plainContent,
-      image_url: imageUrl,
-      category: parsed.data.category,
+      run_id: crypto.randomUUID(),
+      category,
       group_ids: groupIds,
+      contents,
       type: 'group_post',
     };
 

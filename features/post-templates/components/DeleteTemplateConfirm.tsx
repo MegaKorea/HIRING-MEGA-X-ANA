@@ -18,11 +18,10 @@ type DeleteTemplateConfirmProps = {
 
 export function DeleteTemplateConfirm({ template, disabled }: DeleteTemplateConfirmProps) {
   const [open, setOpen] = useState(false);
-  const { mutateAsync, isPending } = useDeletePostTemplate();
+  const { mutate, isPending } = useDeletePostTemplate();
 
-  async function handleDelete() {
-    await mutateAsync(template.id);
-    setOpen(false);
+  function handleDelete() {
+    mutate(template.id, { onSuccess: () => setOpen(false) });
   }
 
   return (
@@ -56,7 +55,7 @@ export function DeleteTemplateConfirm({ template, disabled }: DeleteTemplateConf
             variant="destructive"
             size="sm"
             disabled={isPending}
-            onClick={() => void handleDelete()}
+            onClick={handleDelete}
           >
             {isPending ? 'Đang xóa...' : 'Xóa'}
           </Button>

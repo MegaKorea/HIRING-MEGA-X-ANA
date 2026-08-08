@@ -130,7 +130,7 @@ export function PostTemplatesPanel() {
                     size="sm"
                     disabled={updateMutation.isPending}
                     onClick={() =>
-                      void updateMutation.mutateAsync({
+                      updateMutation.mutate({
                         id: template.id,
                         input: { is_active: !template.is_active },
                       })
