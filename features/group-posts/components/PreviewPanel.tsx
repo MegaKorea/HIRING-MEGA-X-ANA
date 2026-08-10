@@ -1,5 +1,6 @@
 'use client';
 
+import { BrandLogo } from '@/components/common';
 import { isHtmlContentEmpty } from '@/lib/utils/html-content';
 
 type PreviewPanelProps = {
@@ -33,9 +34,7 @@ export function PreviewPanel({
         {hasPreview ? (
           <article className="flex min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[var(--shadow-soft)]">
             <div className="flex items-center gap-3 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-4">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary sm:size-11 sm:text-sm">
-                MX
-              </div>
+              <BrandLogo size={40} className="shrink-0" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-foreground">Mega X Ana</p>
                 <p className="truncate text-xs text-muted-foreground">

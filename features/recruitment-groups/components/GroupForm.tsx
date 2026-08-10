@@ -92,8 +92,6 @@ export function GroupForm({ group }: GroupFormProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const payload = toPayload(form);
-    // ponytail: mutate + onSuccess, not await mutateAsync — mutateAsync rejects on
-    // error and the handler has no catch, which surfaces as an unhandledRejection.
     const onSuccess = () => router.push('/groups');
 
     if (isEdit && group) {
@@ -131,7 +129,7 @@ export function GroupForm({ group }: GroupFormProps) {
               Danh mục <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={form.category || undefined}
+              value={form.category}
               disabled={submitting}
               onValueChange={(value) => updateField('category', value)}
             >
@@ -190,19 +188,21 @@ export function GroupForm({ group }: GroupFormProps) {
             />
           </div>
 
-          <div className="grid min-w-0 gap-2">
-            <Label htmlFor="group-cooldown">Cooldown (phút)</Label>
-            <Input
-              id="group-cooldown"
-              type="number"
-              min={0}
-              step={1}
-              value={form.cooldown_minutes}
-              onChange={(e) => updateField('cooldown_minutes', e.target.value)}
-              placeholder="1440"
-              className="h-10 md:h-9"
-            />
-          </div>
+          {isEdit ? (
+            <div className="grid min-w-0 gap-2">
+              <Label htmlFor="group-cooldown">Cooldown (phút)</Label>
+              <Input
+                id="group-cooldown"
+                type="number"
+                min={0}
+                step={1}
+                value={form.cooldown_minutes}
+                onChange={(e) => updateField('cooldown_minutes', e.target.value)}
+                placeholder="1440"
+                className="h-10 md:h-9"
+              />
+            </div>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-between gap-3 rounded-none border border-border bg-muted/20 px-3 py-2.5">

@@ -5,7 +5,6 @@ import { FileText } from 'lucide-react';
 import { EmptyState, LoadingState, PageHeader } from '@/components/common';
 import { TemplateForm } from '@/features/post-templates/components/TemplateForm';
 import { usePostTemplate } from '@/features/post-templates/hooks';
-import { PostsNav } from '@/features/group-posts/components/PostsNav';
 import { getErrorMessage } from '@/lib/utils';
 
 type EditPostTemplatePageProps = {
@@ -15,17 +14,17 @@ type EditPostTemplatePageProps = {
 export default function EditPostTemplatePage({ params }: EditPostTemplatePageProps) {
   const { id: rawId } = use(params);
   const id = Number(rawId);
-  const { data: template, isLoading, isError, error, refetch } = usePostTemplate(
-    Number.isFinite(id) && id > 0 ? id : null,
-  );
+  const {
+    data: template,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = usePostTemplate(Number.isFinite(id) && id > 0 ? id : null);
 
   return (
     <div className="min-w-0">
-      <PageHeader
-        title="Sửa content"
-        description="Cập nhật nội dung + ảnh mẫu."
-        actions={<PostsNav />}
-      />
+      <PageHeader title="Sửa content" description="Cập nhật nội dung + ảnh mẫu." />
 
       {isLoading ? <LoadingState tip="Đang tải content..." /> : null}
 

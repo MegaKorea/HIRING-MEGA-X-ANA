@@ -13,7 +13,6 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // FormData needs browser/boundary Content-Type — drop JSON default.
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
       if (config.headers) {
         delete config.headers['Content-Type'];

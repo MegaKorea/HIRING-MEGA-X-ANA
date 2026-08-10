@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
@@ -16,7 +16,7 @@ import { useRecruitmentGroups } from '@/features/recruitment-groups/hooks';
 import type { RecruitmentGroup } from '@/lib/supabase/types/tables';
 import { getErrorMessage } from '@/lib/utils';
 
-export default function GroupsPage() {
+function GroupsPageContent() {
   const router = useRouter();
   const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [category, setCategory] = useQueryState(
@@ -139,5 +139,13 @@ export default function GroupsPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function GroupsPage() {
+  return (
+    <Suspense fallback={<LoadingState tip="Đang tải danh sách nhóm..." />}>
+      <GroupsPageContent />
+    </Suspense>
   );
 }
