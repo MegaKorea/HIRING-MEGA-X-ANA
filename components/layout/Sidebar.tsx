@@ -5,7 +5,7 @@ import { BrandLogo } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { APP_BRAND, APP_MENU, APP_NAME } from '@/constants/menu';
+import { APP_MENU } from '@/constants/menu';
 import { THEME } from '@/constants/theme';
 import { useNavigation } from '@/lib/contexts/navigation.context';
 import { useActiveMenuItem } from '@/lib/hooks/use-active-menu';
@@ -19,10 +19,7 @@ function BrandMark({ compact }: { compact?: boolean }) {
       <BrandLogo size={compact ? 32 : 36} className="shrink-0" />
       {!compact ? (
         <div className="min-w-0 leading-tight">
-          <div className="truncate text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
-            {APP_BRAND}
-          </div>
-          <div className="truncate text-sm font-semibold text-foreground">{APP_NAME}</div>
+          <div className="truncate text-sm font-semibold text-foreground">Hiring Tools</div>
         </div>
       ) : null}
     </div>
@@ -46,7 +43,8 @@ function NavItems({ compact, onNavigate }: { compact?: boolean; onNavigate?: () 
             className={cn(
               'h-10 w-full justify-start gap-3 rounded-none px-3',
               compact && 'size-10 justify-center px-0',
-              isActive && 'bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground',
+              isActive &&
+                'bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground',
             )}
             onClick={() => {
               navigateWithDelay(item.path);

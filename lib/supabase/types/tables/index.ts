@@ -10,3 +10,4 @@ export type {
   PostTemplateUpdate,
   PostTemplateTable,
 } from './post-template';
+export type { PostLog, PostLogInsert, PostLogUpdate, PostLogTable } from './post-log';

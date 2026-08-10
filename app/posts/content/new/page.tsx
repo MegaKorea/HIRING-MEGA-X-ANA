@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { LoadingState, PageHeader } from '@/components/common';
 import { TemplateForm } from '@/features/post-templates/components/TemplateForm';
-import { PostsNav } from '@/features/group-posts/components/PostsNav';
 
 function NewTemplateForm() {
   const searchParams = useSearchParams();
@@ -18,7 +17,6 @@ export default function NewPostTemplatePage() {
       <PageHeader
         title="Thêm content"
         description="Soạn nội dung + ảnh mẫu để dùng khi soạn bài đăng."
-        actions={<PostsNav />}
       />
       <Suspense fallback={<LoadingState tip="Đang tải form..." />}>
         <NewTemplateForm />

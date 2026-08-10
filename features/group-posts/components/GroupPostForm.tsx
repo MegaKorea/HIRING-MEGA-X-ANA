@@ -62,9 +62,22 @@ export function GroupPostForm() {
   const groupMeta = groupIdsQuery.data?.meta;
   const submitting = createMutation.isPending;
   const templateCount = templatesQuery.data?.meta.total ?? 0;
-  // Random mode không có draft để xem trước — lấy tạm content đầu tiên làm mẫu.
-  const sampleTemplate = randomContent ? templatesQuery.data?.data[0] : undefined;
-  // Random mode: n8n lấy content từ post_template nên form không cần nội dung.
+  const templates = templatesQuery.data?.data;
+
+  // Random mode không có draft để xem trước — bốc ngẫu nhiên 1 content làm mẫu.
+  // Math.random() chạy trong handler bật/tắt toggle (sự kiện thật), không phải lúc
+  // render, để tránh gọi hàm impure trong render (react-hooks/purity).
+  const [sampleSeed, setSampleSeed] = useState(0);
+  const sampleTemplate =
+    randomContent && templates && templates.length > 0
+      ? templates[Math.floor(sampleSeed * templates.length)]
+      : undefined;
+
+  function handleRandomContentChange(next: boolean) {
+    if (next) setSampleSeed(Math.random());
+    setRandomContent(next);
+  }
+
   const hasContent = randomContent
     ? templateCount > 0 && !templatesQuery.isLoading
     : !isHtmlContentEmpty(content);
@@ -117,7 +130,7 @@ export function GroupPostForm() {
           randomContent={randomContent}
           templateCount={templateCount}
           templatesLoading={templatesQuery.isLoading}
-          onRandomContentChange={setRandomContent}
+          onRandomContentChange={handleRandomContentChange}
           onCategoryChange={setCategory}
           onContentChange={setContent}
           onImageChange={setImage}
@@ -157,8 +170,7 @@ export function GroupPostForm() {
               {category ? (
                 <>
                   {' '}
-                  thuộc danh mục{' '}
-                  <span className="font-medium text-foreground">{category}</span>
+                  thuộc danh mục <span className="font-medium text-foreground">{category}</span>
                 </>
               ) : null}
               {randomContent

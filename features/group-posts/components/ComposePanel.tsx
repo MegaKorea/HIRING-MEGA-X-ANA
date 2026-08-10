@@ -62,7 +62,7 @@ export function ComposePanel({
   onSelectTemplate,
 }: ComposePanelProps) {
   return (
-    <section className="grid min-w-0 gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] sm:gap-5 sm:p-5 md:p-6 lg:rounded-none lg:border-0 lg:border-r lg:border-border lg:p-6 lg:shadow-none xl:p-8">
+    <section className="grid min-w-0 content-start gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] sm:gap-5 sm:p-5 md:p-6 lg:rounded-none lg:border-0 lg:border-r lg:border-border lg:p-6 lg:shadow-none xl:p-8">
       <div className="min-w-0">
         <p className="text-sm text-muted-foreground">
           Chọn đúng thẻ danh mục đã gắn trên Danh sách nhóm (vd: HR).
@@ -74,7 +74,7 @@ export function ComposePanel({
           Danh mục <span className="text-destructive">*</span>
         </Label>
         <Select
-          value={category ?? undefined}
+          value={category ?? ''}
           disabled={submitting || categoriesLoading}
           onValueChange={onCategoryChange}
         >

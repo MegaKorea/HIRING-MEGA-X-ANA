@@ -11,7 +11,7 @@ function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.some((route) => pathname === route);
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const unlocked = await verifyPinToken(request.cookies.get(PIN_COOKIE_NAME)?.value);
   const isPublic = isPublicRoute(pathname);

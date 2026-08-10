@@ -1,3 +1,4 @@
+import type { PostLogTable } from '@/lib/supabase/types/tables/post-log';
 import type { PostTemplateTable } from '@/lib/supabase/types/tables/post-template';
 import type { RecruitmentGroupTable } from '@/lib/supabase/types/tables/recruitment-group';
 
@@ -17,6 +18,7 @@ export interface Database {
     Tables: {
       recruitment_group: RecruitmentGroupTable;
       post_template: PostTemplateTable;
+      post_log: PostLogTable;
     };
     Views: {
       [_ in never]: never;
