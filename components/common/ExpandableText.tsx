@@ -24,7 +24,7 @@ export function ExpandableText({ text, className }: ExpandableTextProps) {
       <p
         ref={ref}
         className={cn(
-          'min-w-0 text-wrap-anywhere whitespace-pre-wrap text-sm leading-relaxed text-foreground',
+          'min-w-0 wrap-anywhere whitespace-pre-wrap text-sm leading-relaxed text-foreground',
           !expanded && 'line-clamp-3',
           className,
         )}

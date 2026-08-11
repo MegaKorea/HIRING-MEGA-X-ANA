@@ -65,7 +65,7 @@ function StatusBadge({ log }: { log: PostLog }) {
       <TooltipTrigger asChild>
         <span className="inline-flex cursor-default">{badge}</span>
       </TooltipTrigger>
-      <TooltipContent className="max-w-72 text-wrap-anywhere">{log.error}</TooltipContent>
+      <TooltipContent className="max-w-72 wrap-anywhere">{log.error}</TooltipContent>
     </Tooltip>
   );
 }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FileText, Pencil, Plus } from 'lucide-react';
-import { EmptyState, ExpandableText, LoadingState } from '@/components/common';
+import { EmptyState, LoadingState } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,16 +14,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { RECRUITMENT_CATEGORIES } from '@/constants/recruitment-categories';
 import {
   usePostTemplates,
   useUpdatePostTemplate,
 } from '@/features/post-templates/hooks';
 import { DeleteTemplateConfirm } from '@/features/post-templates/components/DeleteTemplateConfirm';
+import { DateFormat, formatDate } from '@/lib/dayjs';
 import { getPlainTextFromHtml } from '@/lib/utils/html-content';
-import { getErrorMessage } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/lib/utils';
 
 const ALL_VALUE = '__all__';
+
+const HEAD =
+  'h-11 bg-muted/40 py-0 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase';
+const CELL = 'px-3 py-3 align-middle';
+
+const COLUMNS = [
+  { key: 'category', label: 'Danh mục', className: 'w-[13%] pr-3 pl-6' },
+  { key: 'content', label: 'Nội dung', className: 'w-[38%] px-3' },
+  { key: 'image', label: 'Ảnh', className: 'w-[8%] px-3 text-center' },
+  { key: 'status', label: 'Trạng thái', className: 'w-[11%] px-3' },
+  { key: 'last_posted_at', label: 'Đăng gần nhất', className: 'w-[14%] px-3' },
+  { key: 'actions', label: '', className: 'w-[16%] pr-6 pl-3' },
+] as const;
 
 export function PostTemplatesPanel() {
   const router = useRouter();
@@ -90,68 +112,96 @@ export function PostTemplatesPanel() {
       ) : null}
 
       {!isLoading && !isError && templates.length > 0 ? (
-        <div className="grid gap-3">
-          {templates.map((template) => {
-            const preview = getPlainTextFromHtml(template.content);
-            return (
-              <article
-                key={template.id}
-                className="grid gap-3 rounded-none border border-border bg-card p-4 shadow-[var(--shadow-soft)] sm:grid-cols-[1fr_auto]"
-              >
-                <div className="min-w-0 space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="secondary">{template.category}</Badge>
-                    <Badge variant={template.is_active ? 'default' : 'outline'}>
-                      {template.is_active ? 'Đang bật' : 'Tạm tắt'}
-                    </Badge>
-                    {template.last_posted_at ? (
-                      <span className="text-xs text-muted-foreground">
-                        Đăng gần nhất:{' '}
-                        {new Date(template.last_posted_at).toLocaleString('vi-VN')}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Chưa từng đăng</span>
-                    )}
-                  </div>
-                  <ExpandableText text={preview || '(Không có chữ)'} />
-                  {template.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL
-                    <img
-                      src={template.image_url}
-                      alt=""
-                      className="mt-1 h-20 w-20 rounded-none border border-border object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-stretch">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={updateMutation.isPending}
-                    onClick={() =>
-                      updateMutation.mutate({
-                        id: template.id,
-                        input: { is_active: !template.is_active },
-                      })
-                    }
+        <div className="min-w-0 overflow-hidden rounded-none border border-border bg-card shadow-[var(--shadow-soft)]">
+          <Table className="min-w-[880px] table-fixed" containerClassName="overflow-x-auto">
+            <TableHeader>
+              <TableRow className="border-border/80 hover:bg-transparent">
+                {COLUMNS.map((col) => (
+                  <TableHead key={col.key} className={cn(HEAD, col.className)}>
+                    {col.label}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {templates.map((template) => {
+                const preview = getPlainTextFromHtml(template.content);
+                return (
+                  <TableRow
+                    key={template.id}
+                    className="border-border/60 transition-colors hover:bg-accent/40"
                   >
-                    {template.is_active ? 'Tắt' : 'Bật'}
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/posts/content/${template.id}/edit`}>
-                      <Pencil data-icon="inline-start" />
-                      Sửa
-                    </Link>
-                  </Button>
-                  <DeleteTemplateConfirm
-                    template={template}
-                    disabled={updateMutation.isPending}
-                  />
-                </div>
-              </article>
-            );
-          })}
+                    <TableCell className="py-3 pr-3 pl-6 align-middle">
+                      <Badge
+                        variant="secondary"
+                        className="max-w-full truncate font-normal"
+                        style={{ borderRadius: 9999 }}
+                      >
+                        {template.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={CELL}>
+                      <span
+                        className="line-clamp-2 wrap-anywhere text-muted-foreground"
+                        title={preview}
+                      >
+                        {preview || '(Không có chữ)'}
+                      </span>
+                    </TableCell>
+                    <TableCell className={cn(CELL, 'text-center')}>
+                      {template.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL
+                        <img
+                          src={template.image_url}
+                          alt=""
+                          className="mx-auto size-9 rounded-none border border-border object-cover"
+                        />
+                      ) : (
+                        <span className="text-muted-foreground/50">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className={CELL}>
+                      <Badge variant={template.is_active ? 'default' : 'outline'}>
+                        {template.is_active ? 'Đang bật' : 'Tạm tắt'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={cn(CELL, 'text-muted-foreground tabular-nums')}>
+                      {formatDate(template.last_posted_at, DateFormat.DATETIME) ||
+                        'Chưa từng đăng'}
+                    </TableCell>
+                    <TableCell className="py-3 pr-6 pl-3 align-middle">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={updateMutation.isPending}
+                          onClick={() =>
+                            updateMutation.mutate({
+                              id: template.id,
+                              input: { is_active: !template.is_active },
+                            })
+                          }
+                        >
+                          {template.is_active ? 'Tắt' : 'Bật'}
+                        </Button>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/posts/content/${template.id}/edit`}>
+                            <Pencil data-icon="inline-start" />
+                            Sửa
+                          </Link>
+                        </Button>
+                        <DeleteTemplateConfirm
+                          template={template}
+                          disabled={updateMutation.isPending}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       ) : null}
     </div>

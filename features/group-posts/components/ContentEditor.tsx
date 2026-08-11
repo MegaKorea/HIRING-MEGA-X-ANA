@@ -125,7 +125,7 @@ export function ContentEditor({
         id: id ?? '',
         class: cn(
           'tiptap min-h-24 break-words px-3 py-2.5 text-sm leading-relaxed outline-none',
-          'focus-visible:outline-none text-wrap-anywhere',
+          'focus-visible:outline-none wrap-anywhere',
           '[&_p]:my-1 [&_h1]:mb-2 [&_h1]:mt-3 [&_h1]:text-xl [&_h1]:font-semibold',
           '[&_h2]:mb-2 [&_h2]:mt-3 [&_h2]:text-lg [&_h2]:font-semibold',
           '[&_h3]:mb-1.5 [&_h3]:mt-2 [&_h3]:text-base [&_h3]:font-semibold',

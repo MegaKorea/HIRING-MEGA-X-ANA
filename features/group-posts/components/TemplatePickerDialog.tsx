@@ -95,7 +95,7 @@ export function TemplatePickerDialog({
                         </span>
                       ) : null}
                     </div>
-                    <p className="line-clamp-3 min-w-0 text-wrap-anywhere text-sm text-foreground">
+                    <p className="line-clamp-3 min-w-0 wrap-anywhere text-sm text-foreground">
                       {preview || '(Không có chữ)'}
                     </p>
                   </button>
