@@ -1,7 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useIsFetching, useQueryClient } from '@tanstack/react-query';
+import { RefreshCw } from 'lucide-react';
 import { FadeIn } from './FadeIn';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
@@ -12,6 +15,9 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, description, actions, className }: PageHeaderProps) {
+  const queryClient = useQueryClient();
+  const isFetching = useIsFetching() > 0;
+
   return (
     <FadeIn
       className={cn('mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between', className)}
@@ -22,7 +28,18 @@ export function PageHeader({ title, description, actions, className }: PageHeade
           <p className="mb-0 max-w-2xl text-sm text-balance text-muted-foreground">{description}</p>
         ) : null}
       </div>
-      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          disabled={isFetching}
+          onClick={() => void queryClient.invalidateQueries()}
+          title="Tải lại dữ liệu của trang"
+        >
+          <RefreshCw data-icon="inline-start" className={cn(isFetching && 'animate-spin')} />
+          Làm mới
+        </Button>
+        {actions}
+      </div>
     </FadeIn>
   );
 }

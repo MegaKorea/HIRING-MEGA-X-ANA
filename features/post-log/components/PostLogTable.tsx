@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { CheckCircle2, ExternalLink, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, ExternalLink, MessageCircle, Trash2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -29,14 +29,15 @@ const COLUMNS = [
   { key: 'posted_at', label: 'Thời gian', className: 'w-[13%] px-3 text-center' },
   { key: 'group', label: 'Nhóm', className: 'w-[12%] px-3 text-center' },
   { key: 'category', label: 'Danh mục', className: 'w-[10%] px-3 text-center' },
-  { key: 'content', label: 'Nội dung', className: 'w-[26%] px-3' },
+  { key: 'content', label: 'Nội dung', className: 'w-[28%] px-3' },
   { key: 'image', label: 'Ảnh', className: 'w-[7%] px-3 text-center' },
   { key: 'post', label: 'Bài đăng', className: 'w-[9%] px-3 text-center' },
-  { key: 'run_id', label: 'Run ID', className: 'w-[14%] pl-3 pr-7 text-center' },
+  { key: 'seeding', label: 'Seeding', className: 'w-[12%] pl-3 pr-7 text-center' },
 ] as const;
 
-function facebookGroupPostUrl(groupId: string, postId: string) {
-  return `${facebookGroupUrl(groupId)}/posts/${encodeURIComponent(postId)}`;
+/** post_id = "<groupId>_<storyId>" — chỉ phần sau mở trực tiếp được trên Facebook. */
+function facebookPostUrl(postId: string) {
+  return `https://www.facebook.com/${encodeURIComponent(postId.split('_')[1] ?? postId)}`;
 }
 
 function EmptyCell() {
@@ -79,7 +80,7 @@ function PostChip({ log }: { log: PostLog }) {
   if (!log.ok || !log.post_id) return <EmptyCell />;
   return (
     <a
-      href={facebookGroupPostUrl(log.group_id, log.post_id)}
+      href={facebookPostUrl(log.post_id)}
       target="_blank"
       rel="noreferrer"
       className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-none border border-border bg-background px-2 text-xs font-medium text-foreground transition hover:border-primary/30 hover:bg-accent hover:text-accent-foreground"
@@ -87,6 +88,32 @@ function PostChip({ log }: { log: PostLog }) {
       Xem
       <ExternalLink className="size-3 shrink-0 opacity-70" />
     </a>
+  );
+}
+
+function SeedingBadge({ log }: { log: PostLog }) {
+  if (log.check_status === 'removed') {
+    return (
+      <Badge variant="destructive" className="gap-1">
+        <Trash2 data-icon="inline-start" />
+        Bị gỡ
+      </Badge>
+    );
+  }
+  if (log.check_status === 'alive') {
+    return (
+      <Badge className="gap-1 bg-emerald-600/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+        <MessageCircle data-icon="inline-start" />
+        {log.seeded ? 'Đã seed' : 'Còn sống'}
+      </Badge>
+    );
+  }
+  if (!log.ok) return <EmptyCell />;
+  return (
+    <Badge variant="secondary" className="gap-1 font-normal text-muted-foreground">
+      <Clock data-icon="inline-start" />
+      Chờ check
+    </Badge>
   );
 }
 
@@ -121,7 +148,7 @@ function PostLogMobileCard({ log }: { log: PostLog }) {
     { label: 'Nội dung', value: log.content, clamp: true },
     { label: 'Ảnh', value: log.image_url ? <ImageThumb imageUrl={log.image_url} /> : null },
     { label: 'Bài đăng', value: <PostChip log={log} /> },
-    { label: 'Run ID', value: log.run_id, mono: true },
+    { label: 'Seeding', value: <SeedingBadge log={log} /> },
     ...(log.ok || !log.error ? [] : [{ label: 'Lỗi', value: log.error, clamp: true, error: true }]),
   ];
 
@@ -155,7 +182,6 @@ function PostLogMobileCard({ log }: { log: PostLog }) {
             <dd
               className={cn(
                 'min-w-0 text-right text-foreground',
-                row.mono && 'font-mono text-xs',
                 row.clamp && 'line-clamp-2 break-words',
                 row.error && 'text-destructive',
               )}
@@ -225,8 +251,10 @@ function PostLogDesktopTable({ logs }: PostLogTableProps) {
                   <PostChip log={log} />
                 </Center>
               </TableCell>
-              <TableCell className="truncate py-3 pr-7 pl-3 text-center align-middle font-mono text-xs text-muted-foreground">
-                {log.run_id}
+              <TableCell className={cn(CELL, 'text-center')}>
+                <Center>
+                  <SeedingBadge log={log} />
+                </Center>
               </TableCell>
             </TableRow>
           ))}

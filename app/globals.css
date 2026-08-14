@@ -224,10 +224,6 @@
   .text-balance {
     text-wrap: balance;
   }
-
-  .text-wrap-anywhere {
-    overflow-wrap: anywhere;
-  }
 }
 
 @keyframes auth-glow-pulse {

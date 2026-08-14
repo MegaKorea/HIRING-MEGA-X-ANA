@@ -10,6 +10,9 @@ export type PostLog = {
   post_id: string | null;
   ok: boolean;
   error: string | null;
+  seeded: boolean;
+  /** null = chưa tới lượt check | 'alive' = còn sống (đã seeding) | 'removed' = bị gỡ */
+  check_status: 'alive' | 'removed' | null;
   posted_at: string;
 };
 
@@ -24,6 +27,8 @@ export type PostLogInsert = {
   post_id?: string | null;
   ok?: boolean;
   error?: string | null;
+  seeded?: boolean;
+  check_status?: 'alive' | 'removed' | null;
   posted_at?: string;
 };
 
