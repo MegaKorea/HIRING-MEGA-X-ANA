@@ -3,21 +3,23 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type GroupsPaginationProps = {
+type PaginationProps = {
   page: number;
   totalPages: number;
   total: number;
   pageSize: number;
+  unitLabel: string;
   onPageChange: (page: number) => void;
 };
 
-export function GroupsPagination({
+export function Pagination({
   page,
   totalPages,
   total,
   pageSize,
+  unitLabel,
   onPageChange,
-}: GroupsPaginationProps) {
+}: PaginationProps) {
   if (total <= pageSize) return null;
 
   const from = (page - 1) * pageSize + 1;
@@ -29,20 +31,20 @@ export function GroupsPagination({
         <span className="font-medium text-foreground">{from}</span>–
         <span className="font-medium text-foreground">{to}</span>
         <span className="mx-1">/</span>
-        {total} nhóm
+        {total} {unitLabel}
       </p>
 
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="icon-sm"
           className="justify-self-start"
+          title="Trước"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft data-icon="inline-start" />
-          <span className="sm:inline">Trước</span>
+          <ChevronLeft />
         </Button>
         <span className="min-w-16 text-center text-sm tabular-nums text-muted-foreground">
           {page}/{totalPages}
@@ -50,13 +52,13 @@ export function GroupsPagination({
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="icon-sm"
           className="justify-self-end"
+          title="Sau"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          <span className="sm:inline">Sau</span>
-          <ChevronRight data-icon="inline-end" />
+          <ChevronRight />
         </Button>
       </div>
     </div>

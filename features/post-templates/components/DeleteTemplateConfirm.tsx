@@ -27,9 +27,14 @@ export function DeleteTemplateConfirm({ template, disabled }: DeleteTemplateConf
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="destructive" size="sm" disabled={disabled || isPending}>
-          <Trash2 data-icon="inline-start" />
-          Xóa
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon-sm"
+          title="Xóa"
+          disabled={disabled || isPending}
+        >
+          <Trash2 />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

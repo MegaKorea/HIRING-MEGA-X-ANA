@@ -5,11 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { Plus, UsersRound } from 'lucide-react';
-import { EmptyState, LoadingState, PageHeader } from '@/components/common';
+import { EmptyState, LoadingState, PageHeader, Pagination } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { DeleteGroupDialog } from '@/features/recruitment-groups/components/DeleteGroupDialog';
 import { GroupsCategoryFilter } from '@/features/recruitment-groups/components/GroupsCategoryFilter';
-import { GroupsPagination } from '@/features/recruitment-groups/components/GroupsPagination';
 import { GroupsTable } from '@/features/recruitment-groups/components/GroupsTable';
 import { RECRUITMENT_GROUPS_PAGE_SIZE } from '@/features/recruitment-groups/api';
 import { useRecruitmentGroups } from '@/features/recruitment-groups/hooks';
@@ -119,11 +118,12 @@ function GroupsPageContent() {
             }}
             onDelete={setDeleting}
           />
-          <GroupsPagination
+          <Pagination
             page={page}
             totalPages={totalPages}
             total={total}
             pageSize={RECRUITMENT_GROUPS_PAGE_SIZE}
+            unitLabel="nhóm"
             onPageChange={(next) => {
               void setPage(next);
             }}
