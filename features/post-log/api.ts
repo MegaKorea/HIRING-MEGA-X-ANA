@@ -1,7 +1,7 @@
 import { api } from '@/lib/axios';
 import type { PostLog } from '@/lib/supabase/types/tables';
 
-export const POST_LOG_PAGE_SIZE = 10;
+export const POST_LOG_PAGE_SIZE = 20;
 export const postLogQueryKey = ['post-log'] as const;
 
 export type PostLogListMeta = {

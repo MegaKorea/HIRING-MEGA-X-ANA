@@ -4,5 +4,6 @@ export * from './ExpandableText';
 export * from './FadeIn';
 export * from './LoadingState';
 export * from './PageHeader';
+export * from './Pagination';
 export * from './PageTransitionOverlay';
 export * from './PlaceholderPage';

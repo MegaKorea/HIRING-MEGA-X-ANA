@@ -3,10 +3,9 @@
 import { Suspense, useEffect, useState } from 'react';
 import { parseAsBoolean, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { History } from 'lucide-react';
-import { EmptyState, LoadingState, PageHeader } from '@/components/common';
+import { EmptyState, LoadingState, PageHeader, Pagination } from '@/components/common';
 import { POST_LOG_PAGE_SIZE } from '@/features/post-log/api';
 import { PostLogFilters } from '@/features/post-log/components/PostLogFilters';
-import { PostLogPagination } from '@/features/post-log/components/PostLogPagination';
 import { PostLogTable } from '@/features/post-log/components/PostLogTable';
 import { usePostLog } from '@/features/post-log/hooks';
 import { getErrorMessage } from '@/lib/utils';
@@ -110,11 +109,12 @@ function PostHistoryPageContent() {
       {!isLoading && !isError && logs.length > 0 ? (
         <div className={isFetching ? 'opacity-70 transition-opacity' : undefined}>
           <PostLogTable logs={logs} />
-          <PostLogPagination
+          <Pagination
             page={page}
             totalPages={totalPages}
             total={total}
             pageSize={POST_LOG_PAGE_SIZE}
+            unitLabel="lượt đăng"
             onPageChange={(next) => {
               void setQuery({ page: next });
             }}

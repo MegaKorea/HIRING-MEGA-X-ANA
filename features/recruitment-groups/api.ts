@@ -7,7 +7,7 @@ import type {
 
 export { UNCATEGORIZED_FILTER } from '@/lib/validators';
 
-export const RECRUITMENT_GROUPS_PAGE_SIZE = 12;
+export const RECRUITMENT_GROUPS_PAGE_SIZE = 20;
 
 export const recruitmentGroupsQueryKey = ['recruitment-groups'] as const;
 

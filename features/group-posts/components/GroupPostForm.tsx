@@ -63,10 +63,6 @@ export function GroupPostForm() {
   const submitting = createMutation.isPending;
   const templateCount = templatesQuery.data?.meta.total ?? 0;
   const templates = templatesQuery.data?.data;
-
-  // Random mode không có draft để xem trước — bốc ngẫu nhiên 1 content làm mẫu.
-  // Math.random() chạy trong handler bật/tắt toggle (sự kiện thật), không phải lúc
-  // render, để tránh gọi hàm impure trong render (react-hooks/purity).
   const [sampleSeed, setSampleSeed] = useState(0);
   const sampleTemplate =
     randomContent && templates && templates.length > 0

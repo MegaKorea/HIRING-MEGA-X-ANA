@@ -11,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { DateFormat, formatDate } from '@/lib/dayjs';
 import type { PostLog } from '@/lib/supabase/types/tables';
 import { facebookGroupUrl } from '@/lib/utils/facebook-group-id';
@@ -27,13 +26,13 @@ const CELL = 'px-3 py-3 align-middle';
 
 const COLUMNS = [
   { key: 'status', label: 'Trạng thái', className: 'w-[9%] pl-9 pr-3' },
-  { key: 'posted_at', label: 'Thời gian', className: 'w-[13%] px-3' },
-  { key: 'group', label: 'Nhóm', className: 'w-[12%] px-3' },
-  { key: 'category', label: 'Danh mục', className: 'w-[10%] px-3' },
+  { key: 'posted_at', label: 'Thời gian', className: 'w-[13%] px-3 text-center' },
+  { key: 'group', label: 'Nhóm', className: 'w-[12%] px-3 text-center' },
+  { key: 'category', label: 'Danh mục', className: 'w-[10%] px-3 text-center' },
   { key: 'content', label: 'Nội dung', className: 'w-[28%] px-3' },
   { key: 'image', label: 'Ảnh', className: 'w-[7%] px-3 text-center' },
   { key: 'post', label: 'Bài đăng', className: 'w-[9%] px-3 text-center' },
-  { key: 'seeding', label: 'Seeding', className: 'w-[12%] pl-3 pr-7' },
+  { key: 'seeding', label: 'Seeding', className: 'w-[12%] pl-3 pr-7 text-center' },
 ] as const;
 
 /** post_id = "<groupId>_<storyId>" — chỉ phần sau mở trực tiếp được trên Facebook. */
@@ -46,27 +45,20 @@ function EmptyCell() {
 }
 
 function StatusBadge({ log }: { log: PostLog }) {
-  const badge = log.ok ? (
-    <Badge className="gap-1 bg-emerald-600/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
-      <CheckCircle2 data-icon="inline-start" />
-      OK
-    </Badge>
-  ) : (
-    <Badge variant="destructive" className="gap-1">
+  if (log.ok) {
+    return (
+      <Badge className="gap-1 bg-emerald-600/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+        <CheckCircle2 data-icon="inline-start" />
+        OK
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="destructive" className="gap-1 cursor-default" title={log.error ?? undefined}>
       <XCircle data-icon="inline-start" />
       Lỗi
     </Badge>
-  );
-
-  if (log.ok || !log.error) return badge;
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="inline-flex cursor-default">{badge}</span>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-72 wrap-anywhere">{log.error}</TooltipContent>
-    </Tooltip>
   );
 }
 
@@ -218,21 +210,30 @@ function PostLogDesktopTable({ logs }: PostLogTableProps) {
         </TableHeader>
         <TableBody>
           {logs.map((log) => (
-            <TableRow key={log.id} className="border-border/60 transition-colors hover:bg-accent/40">
+            <TableRow
+              key={log.id}
+              className="border-border/60 transition-colors hover:bg-accent/40"
+            >
               <TableCell className="py-3 pl-9 pr-3 align-middle">
                 <StatusBadge log={log} />
               </TableCell>
-              <TableCell className={cn(CELL, 'text-muted-foreground tabular-nums')}>
+              <TableCell className={cn(CELL, 'text-center text-muted-foreground tabular-nums')}>
                 {formatDate(log.posted_at, DateFormat.DATETIME)}
               </TableCell>
-              <TableCell className={CELL}>
+              <TableCell className={cn(CELL, 'text-center')}>
                 <GroupChip groupId={log.group_id} />
               </TableCell>
-              <TableCell className={CELL}>
+              <TableCell className={cn(CELL, 'text-center')}>
                 {log.category ? (
-                  <Badge variant="secondary" className="max-w-full truncate font-normal" style={{ borderRadius: 9999 }}>
-                    {log.category}
-                  </Badge>
+                  <Center>
+                    <Badge
+                      variant="secondary"
+                      className="max-w-full truncate font-normal"
+                      style={{ borderRadius: 9999 }}
+                    >
+                      {log.category}
+                    </Badge>
+                  </Center>
                 ) : (
                   <EmptyCell />
                 )}
@@ -250,8 +251,10 @@ function PostLogDesktopTable({ logs }: PostLogTableProps) {
                   <PostChip log={log} />
                 </Center>
               </TableCell>
-              <TableCell className="py-3 pr-7 pl-3 align-middle">
-                <SeedingBadge log={log} />
+              <TableCell className={cn(CELL, 'text-center')}>
+                <Center>
+                  <SeedingBadge log={log} />
+                </Center>
               </TableCell>
             </TableRow>
           ))}
