@@ -25,6 +25,27 @@ type ResourceGridProps = {
   onEdit: (image: ResourceImage) => void;
 };
 
+export function ResourceImageMeta({ image }: { image: ResourceImage }) {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL */}
+      <img
+        src={image.url}
+        alt={image.name}
+        className="size-8 shrink-0 rounded-none border border-border bg-muted/40 object-cover"
+      />
+      <span className="min-w-0 leading-tight">
+        <p className="truncate text-sm text-foreground" title={image.name}>
+          {image.name || '(Không tên)'}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {formatDate(image.createdAt, DateFormat.DATETIME)}
+        </p>
+      </span>
+    </>
+  );
+}
+
 export function ResourceGrid({ images, onEdit }: ResourceGridProps) {
   const [previewing, setPreviewing] = useState<ResourceImage | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -100,20 +121,7 @@ export function ResourceGrid({ images, onEdit }: ResourceGridProps) {
               className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
               onClick={() => setPreviewing(image)}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL */}
-              <img
-                src={image.url}
-                alt={image.name}
-                className="size-8 shrink-0 rounded-none border border-border bg-muted/40 object-cover"
-              />
-              <span className="min-w-0 leading-tight">
-                <p className="truncate text-sm text-foreground" title={image.name}>
-                  {image.name || '(Không tên)'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatDate(image.createdAt, DateFormat.DATETIME)}
-                </p>
-              </span>
+              <ResourceImageMeta image={image} />
             </button>
             <div className="flex shrink-0 gap-1.5">
               <Button

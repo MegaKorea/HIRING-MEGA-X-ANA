@@ -15,6 +15,7 @@ type GroupPostDraftState = {
   setRandomContent: (randomContent: boolean) => void;
   setCategory: (category: string | null) => void;
   setImage: (file: File | null) => void;
+  setImageUrl: (url: string) => void;
   applyTemplate: (template: { content: string; image_url: string }) => void;
   clearImage: () => void;
   clearDraft: () => void;
@@ -45,6 +46,11 @@ export const useGroupPostDraftStore = create<GroupPostDraftState>((set, get) => 
       imageUrl: null,
       previewUrl: file ? URL.createObjectURL(file) : null,
     });
+  },
+
+  setImageUrl: (url) => {
+    revokePreview(get().previewUrl);
+    set({ image: null, imageUrl: url, previewUrl: url });
   },
 
   applyTemplate: (template) => {

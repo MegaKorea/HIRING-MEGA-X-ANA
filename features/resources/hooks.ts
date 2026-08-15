@@ -16,10 +16,11 @@ import {
 } from '@/features/resources/api';
 import { getErrorMessage } from '@/lib/utils';
 
-export function useResourceImages(folder?: string | null) {
+export function useResourceImages(folder?: string | null, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: [...resourceImagesQueryKey, folder ?? ''],
     queryFn: () => listResourceImages(folder),
+    enabled: options?.enabled,
   });
 }
 
