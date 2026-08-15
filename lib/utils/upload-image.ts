@@ -4,14 +4,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 
 export const IMAGES_BUCKET = 'images';
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-export const ALLOWED_IMAGE_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-]);
+export const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-function extensionFromMime(mime: string) {
+export function extensionFromMime(mime: string) {
   if (mime === 'image/png') return 'png';
   if (mime === 'image/webp') return 'webp';
   if (mime === 'image/gif') return 'gif';
@@ -22,18 +17,11 @@ export function isUploadFile(value: FormDataEntryValue | null): value is File {
   return !!value && typeof value !== 'string' && value.size > 0;
 }
 
-export async function uploadImageToBucket(
-  file: File,
-  folder = 'post-templates',
-): Promise<string> {
+export async function uploadImageToBucket(file: File, folder = 'post-templates'): Promise<string> {
   const type = file.type || 'image/jpeg';
 
   if (!ALLOWED_IMAGE_TYPES.has(type)) {
-    fail(
-      'VALIDATION_ERROR',
-      HttpStatusCode.BAD_REQUEST,
-      'Ảnh phải là JPEG, PNG, WebP hoặc GIF',
-    );
+    fail('VALIDATION_ERROR', HttpStatusCode.BAD_REQUEST, 'Ảnh phải là JPEG, PNG, WebP hoặc GIF');
   }
 
   if (file.size > MAX_IMAGE_BYTES) {

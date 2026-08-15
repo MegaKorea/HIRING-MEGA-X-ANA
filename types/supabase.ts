@@ -2,13 +2,7 @@ import type { PostLogTable } from '@/lib/supabase/types/tables/post-log';
 import type { PostTemplateTable } from '@/lib/supabase/types/tables/post-template';
 import type { RecruitmentGroupTable } from '@/lib/supabase/types/tables/recruitment-group';
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   __InternalSupabase: {
