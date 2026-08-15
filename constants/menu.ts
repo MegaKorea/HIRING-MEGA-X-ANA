@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, History, Images, PenSquare, UsersRound } from 'lucide-react';
+import { FileText, History, IdCard, Images, PenSquare, UsersRound } from 'lucide-react';
 
 export type MenuItem = {
   key: string;
@@ -10,6 +10,7 @@ export type MenuItem = {
 
 export const APP_MENU: MenuItem[] = [
   { key: 'groups', label: 'Danh sách nhóm', path: '/groups', icon: UsersRound },
+  { key: 'candidates', label: 'Hồ sơ ứng viên', path: '/candidates', icon: IdCard },
   { key: 'posts', label: 'Đăng bài', path: '/posts', icon: PenSquare },
   { key: 'post-content', label: 'Content', path: '/posts/content', icon: FileText },
   { key: 'post-history', label: 'Lịch sử đăng bài', path: '/posts/history', icon: History },

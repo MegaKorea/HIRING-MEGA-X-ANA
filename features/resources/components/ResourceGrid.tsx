@@ -31,8 +31,6 @@ export function ResourceGrid({ images, onEdit }: ResourceGridProps) {
   const [confirmingBulkDelete, setConfirmingBulkDelete] = useState(false);
   const bulkDeleteMutation = useDeleteResourceImages();
 
-  // Reset selection whenever the image list changes (folder switch, refetch after
-  // delete, …) — adjusting state during render instead of an effect, per React docs.
   const [prevImages, setPrevImages] = useState(images);
   if (images !== prevImages) {
     setPrevImages(images);
