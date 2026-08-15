@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/sheet';
 import type { ResourceImage } from '@/features/resources/api';
 import { FolderSidebar } from '@/features/resources/components/FolderSidebar';
-import { ResourceImageMeta } from '@/features/resources/components/ResourceGrid';
 import { useResourceImages } from '@/features/resources/hooks';
 
 type ResourceImagePickerDialogProps = {
@@ -56,15 +55,21 @@ export function ResourceImagePickerDialog({ onSelect, disabled }: ResourceImageP
             {!isLoading && list.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">Chưa có ảnh nào trong thư viện.</p>
             ) : null}
-            <div className="divide-y divide-border">
+            <div className="grid grid-cols-6 gap-1.5 p-3 sm:grid-cols-7">
               {list.map((image) => (
                 <button
                   key={image.path}
                   type="button"
-                  className="flex w-full items-center gap-2.5 px-2.5 py-1.5 text-left hover:bg-accent/40"
+                  title={image.name}
+                  className="overflow-hidden rounded-none border border-border transition hover:border-primary"
                   onClick={() => handlePick(image)}
                 >
-                  <ResourceImageMeta image={image} />
+                  {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL */}
+                  <img
+                    src={image.url}
+                    alt={image.name}
+                    className="aspect-square w-full bg-muted/40 object-cover"
+                  />
                 </button>
               ))}
             </div>
