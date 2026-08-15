@@ -84,38 +84,18 @@ export function ResourceGrid({ images, onEdit }: ResourceGridProps) {
         )}
       </div>
 
-      <div className="divide-y divide-border">
+      <div className="grid grid-cols-6 gap-1.5 p-3 sm:grid-cols-8 md:grid-cols-9 lg:grid-cols-11">
         {images.map((image) => (
-          <div
-            key={image.path}
-            className="flex items-center gap-2.5 px-2.5 py-1.5 hover:bg-accent/40"
-          >
-            <Checkbox
-              checked={selected.has(image.path)}
-              onCheckedChange={() => toggle(image.path)}
-              aria-label={`Chọn ${image.name}`}
-            />
-            <button
-              type="button"
-              className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
-              onClick={() => setPreviewing(image)}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL */}
-              <img
-                src={image.url}
-                alt={image.name}
-                className="size-8 shrink-0 rounded-none border border-border bg-muted/40 object-cover"
+          <div key={image.path} className="group relative">
+            <div className="absolute left-1.5 top-1.5 z-10">
+              <Checkbox
+                checked={selected.has(image.path)}
+                onCheckedChange={() => toggle(image.path)}
+                aria-label={`Chọn ${image.name}`}
+                className="bg-background"
               />
-              <span className="min-w-0 leading-tight">
-                <p className="truncate text-sm text-foreground" title={image.name}>
-                  {image.name || '(Không tên)'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatDate(image.createdAt, DateFormat.DATETIME)}
-                </p>
-              </span>
-            </button>
-            <div className="flex shrink-0 gap-1.5">
+            </div>
+            <div className="absolute right-1.5 top-1.5 z-10 flex gap-1 opacity-0 transition group-hover:opacity-100">
               <Button
                 type="button"
                 variant="secondary"
@@ -127,6 +107,26 @@ export function ResourceGrid({ images, onEdit }: ResourceGridProps) {
               </Button>
               <DeleteResourceConfirm image={image} />
             </div>
+            <button
+              type="button"
+              className="block w-full overflow-hidden rounded-none border border-border text-left transition hover:border-primary"
+              onClick={() => setPreviewing(image)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- remote Supabase storage URL */}
+              <img
+                src={image.url}
+                alt={image.name}
+                className="aspect-square w-full bg-muted/40 object-cover"
+              />
+              <span className="block px-1 py-0.5">
+                <span className="block truncate text-xs text-foreground" title={image.name}>
+                  {image.name || '(Không tên)'}
+                </span>
+                <span className="block truncate text-[10px] text-muted-foreground">
+                  {formatDate(image.createdAt, DateFormat.DATETIME)}
+                </span>
+              </span>
+            </button>
           </div>
         ))}
       </div>

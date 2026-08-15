@@ -94,9 +94,10 @@ function FolderNameDialog({
 type FolderSidebarProps = {
   selectedName: string | null;
   onSelect: (name: string | null) => void;
+  readOnly?: boolean;
 };
 
-export function FolderSidebar({ selectedName, onSelect }: FolderSidebarProps) {
+export function FolderSidebar({ selectedName, onSelect, readOnly }: FolderSidebarProps) {
   const { data: folders } = useResourceFolders();
   const [creating, setCreating] = useState(false);
   const [renaming, setRenaming] = useState<ResourceFolder | null>(null);
@@ -128,131 +129,139 @@ export function FolderSidebar({ selectedName, onSelect }: FolderSidebarProps) {
             <span className="truncate">{folder.name}</span>
             <span className="ml-auto text-muted-foreground">{folder.count}</span>
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className={cn(
-                  'shrink-0 opacity-0 group-hover:opacity-100',
-                  'data-open:opacity-100',
-                )}
-                title="Tuỳ chọn folder"
-              >
-                <MoreVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto min-w-0 p-1">
-              <DropdownMenuItem
-                aria-label="Đổi tên"
-                className="justify-center px-2"
-                onSelect={() => setRenaming(folder)}
-              >
-                <Pencil />
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                aria-label="Xóa"
-                variant="destructive"
-                className="justify-center px-2"
-                onSelect={() => setDeleting(folder)}
-              >
-                <Trash2 />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {readOnly ? null : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className={cn(
+                    'shrink-0 opacity-0 group-hover:opacity-100',
+                    'data-open:opacity-100',
+                  )}
+                  title="Tuỳ chọn folder"
+                >
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-auto min-w-0 p-1">
+                <DropdownMenuItem
+                  aria-label="Đổi tên"
+                  className="justify-center px-2"
+                  onSelect={() => setRenaming(folder)}
+                >
+                  <Pencil />
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  aria-label="Xóa"
+                  variant="destructive"
+                  className="justify-center px-2"
+                  onSelect={() => setDeleting(folder)}
+                >
+                  <Trash2 />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       ))}
 
-      <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogTrigger asChild>
-          <Button type="button" variant="outline" className="justify-start">
-            <FolderPlus data-icon="inline-start" />
-            Folder mới
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Tạo folder mới</DialogTitle>
-          </DialogHeader>
-          <form
-            className="grid gap-4"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const form = new FormData(event.currentTarget);
-              const name = String(form.get('name') ?? '').trim();
-              if (!name) return;
-              createMutation.mutate(name, { onSuccess: () => setCreating(false) });
-            }}
-          >
-            <Input
-              name="name"
-              autoFocus
-              placeholder="Tên folder"
-              disabled={createMutation.isPending}
-            />
-            <DialogFooter>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Đang tạo...' : 'Tạo folder'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <FolderNameDialog
-        open={!!renaming}
-        title={`Đổi tên "${renaming?.name ?? ''}"`}
-        initialName={renaming?.name ?? ''}
-        pending={renameMutation.isPending}
-        onOpenChange={(next) => {
-          if (!next) setRenaming(null);
-        }}
-        onSubmit={(name) => {
-          if (!renaming) return;
-          renameMutation.mutate(
-            { name: renaming.name, newName: name },
-            { onSuccess: () => setRenaming(null) },
-          );
-        }}
-      />
-
-      <AlertDialog
-        open={!!deleting}
-        onOpenChange={(next) => {
-          if (!next) setDeleting(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Xóa folder &quot;{deleting?.name}&quot;?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleting && deleting.count > 0
-                ? `Folder này có ${deleting.count} ảnh — xóa folder sẽ xóa luôn các ảnh bên trong.`
-                : 'Folder này đang trống.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (!deleting) return;
-                const name = deleting.name;
-                deleteMutation.mutate(name, {
-                  onSuccess: () => {
-                    setDeleting(null);
-                    if (selectedName === name) onSelect(null);
-                  },
-                });
+      {readOnly ? null : (
+        <Dialog open={creating} onOpenChange={setCreating}>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" className="justify-start">
+              <FolderPlus data-icon="inline-start" />
+              Folder mới
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Tạo folder mới</DialogTitle>
+            </DialogHeader>
+            <form
+              className="grid gap-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const form = new FormData(event.currentTarget);
+                const name = String(form.get('name') ?? '').trim();
+                if (!name) return;
+                createMutation.mutate(name, { onSuccess: () => setCreating(false) });
               }}
             >
-              {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa folder'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <Input
+                name="name"
+                autoFocus
+                placeholder="Tên folder"
+                disabled={createMutation.isPending}
+              />
+              <DialogFooter>
+                <Button type="submit" disabled={createMutation.isPending}>
+                  {createMutation.isPending ? 'Đang tạo...' : 'Tạo folder'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {readOnly ? null : (
+        <>
+          <FolderNameDialog
+            open={!!renaming}
+            title={`Đổi tên "${renaming?.name ?? ''}"`}
+            initialName={renaming?.name ?? ''}
+            pending={renameMutation.isPending}
+            onOpenChange={(next) => {
+              if (!next) setRenaming(null);
+            }}
+            onSubmit={(name) => {
+              if (!renaming) return;
+              renameMutation.mutate(
+                { name: renaming.name, newName: name },
+                { onSuccess: () => setRenaming(null) },
+              );
+            }}
+          />
+
+          <AlertDialog
+            open={!!deleting}
+            onOpenChange={(next) => {
+              if (!next) setDeleting(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Xóa folder &quot;{deleting?.name}&quot;?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {deleting && deleting.count > 0
+                    ? `Folder này có ${deleting.count} ảnh — xóa folder sẽ xóa luôn các ảnh bên trong.`
+                    : 'Folder này đang trống.'}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => {
+                    if (!deleting) return;
+                    const name = deleting.name;
+                    deleteMutation.mutate(name, {
+                      onSuccess: () => {
+                        setDeleting(null);
+                        if (selectedName === name) onSelect(null);
+                      },
+                    });
+                  }}
+                >
+                  {deleteMutation.isPending ? 'Đang xóa...' : 'Xóa folder'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
     </div>
   );
 }
