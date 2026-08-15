@@ -9,11 +9,18 @@ import { cn } from '@/lib/utils';
 type ImagePickerProps = {
   previewUrl: string | null;
   disabled?: boolean;
+  label?: string;
   onChange: (file: File | null) => void;
   onClear: () => void;
 };
 
-export function ImagePicker({ previewUrl, disabled, onChange, onClear }: ImagePickerProps) {
+export function ImagePicker({
+  previewUrl,
+  disabled,
+  label = 'Ảnh (tuỳ chọn)',
+  onChange,
+  onClear,
+}: ImagePickerProps) {
   const inputId = useId();
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -23,7 +30,7 @@ export function ImagePicker({ previewUrl, disabled, onChange, onClear }: ImagePi
 
   return (
     <div className="grid min-w-0 gap-2">
-      <Label>Ảnh (tuỳ chọn)</Label>
+      <Label>{label}</Label>
       {previewUrl ? (
         <div className="relative w-full overflow-hidden rounded-xl border border-border">
           {/* eslint-disable-next-line @next/next/no-img-element -- blob preview URL */}

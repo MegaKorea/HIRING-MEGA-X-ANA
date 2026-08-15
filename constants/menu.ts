@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { FileText, History, PenSquare, UsersRound } from 'lucide-react';
+import { FileText, History, Images, PenSquare, UsersRound } from 'lucide-react';
 
 export type MenuItem = {
   key: string;
@@ -13,6 +13,7 @@ export const APP_MENU: MenuItem[] = [
   { key: 'posts', label: 'Đăng bài', path: '/posts', icon: PenSquare },
   { key: 'post-content', label: 'Content', path: '/posts/content', icon: FileText },
   { key: 'post-history', label: 'Lịch sử đăng bài', path: '/posts/history', icon: History },
+  { key: 'resources', label: 'Tài nguyên', path: '/resources', icon: Images },
 ];
 
 export { APP_BRAND, APP_ICON, APP_NAME } from './brand';

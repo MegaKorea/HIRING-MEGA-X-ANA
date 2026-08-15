@@ -48,7 +48,7 @@ export function createGroupPost(input: {
   formData.append('category', input.category);
 
   if (input.randomContent) {
-    // Content + ảnh lấy từ post_template, n8n bốc ngẫu nhiên cho từng nhóm.
+    // Content + image come from post_template — n8n picks one at random per group.
     formData.append('random_content', 'true');
     return api.post<{ data: CreateGroupPostResult }>('/group-posts', formData);
   }
