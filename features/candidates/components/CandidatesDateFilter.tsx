@@ -1,92 +1,70 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { useState } from 'react';
 import { CalendarDays } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
-dayjs.extend(customParseFormat);
-
-const ISO_FORMAT = 'YYYY-MM-DD';
-const DISPLAY_FORMAT = 'DD/MM/YYYY';
-const ACCEPTED_INPUT_FORMATS = ['DD/MM/YYYY', 'D/M/YYYY', 'DDMMYYYY', 'YYYY-MM-DD'];
-
-function toDisplay(iso: string | null): string {
-  if (!iso) return '';
-  const parsed = dayjs(iso, ISO_FORMAT, true);
-  return parsed.isValid() ? parsed.format(DISPLAY_FORMAT) : '';
+function isoToDate(iso: string | null): Date | undefined {
+  if (!iso) return undefined;
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
 }
+
+function dateToIso(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+const displayFormatter = new Intl.DateTimeFormat('vi-VN', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
 
 type DateFieldProps = {
   value: string | null;
   onChange: (value: string | null) => void;
   disabled?: boolean;
-  ariaLabel: string;
+  placeholder: string;
 };
 
-// ponytail: showPicker() has no fallback on unsupported browsers (Safari < 16.4) — the
-// text field still works there, just the calendar icon does nothing. Add a fallback if needed.
-function DateField({ value, onChange, disabled, ariaLabel }: DateFieldProps) {
-  const [text, setText] = useState(() => toDisplay(value));
-  const [syncedValue, setSyncedValue] = useState(value);
-  const pickerRef = useRef<HTMLInputElement>(null);
-
-  if (value !== syncedValue) {
-    setSyncedValue(value);
-    setText(toDisplay(value));
-  }
-
-  function commitText(raw: string) {
-    const trimmed = raw.trim();
-    if (!trimmed) {
-      onChange(null);
-      return;
-    }
-    const parsed = dayjs(trimmed, ACCEPTED_INPUT_FORMATS, true);
-    if (parsed.isValid()) {
-      onChange(parsed.format(ISO_FORMAT));
-    } else {
-      setText(toDisplay(value));
-    }
-  }
+function DateField({ value, onChange, disabled, placeholder }: DateFieldProps) {
+  const [open, setOpen] = useState(false);
+  const selected = isoToDate(value);
 
   return (
-    <div className="relative flex items-center">
-      <Input
-        type="text"
-        inputMode="numeric"
-        placeholder="dd/mm/yyyy"
-        className="w-[120px] bg-background pr-8"
-        value={text}
-        disabled={disabled}
-        aria-label={ariaLabel}
-        onChange={(e) => setText(e.target.value)}
-        onBlur={(e) => commitText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') e.currentTarget.blur();
-        }}
-      />
-      <button
-        type="button"
-        className="absolute right-2 text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
-        disabled={disabled}
-        onClick={() => pickerRef.current?.showPicker?.()}
-        aria-label={`Mở lịch chọn ${ariaLabel.toLowerCase()}`}
-      >
-        <CalendarDays className="size-4" />
-      </button>
-      <input
-        ref={pickerRef}
-        type="date"
-        value={value ?? ''}
-        disabled={disabled}
-        tabIndex={-1}
-        aria-hidden
-        className="sr-only"
-        onChange={(e) => onChange(e.target.value || null)}
-      />
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className={cn(
+            'w-[140px] justify-start gap-2 bg-background font-normal',
+            !selected && 'text-muted-foreground',
+          )}
+        >
+          <CalendarDays className="size-4" />
+          {selected ? displayFormatter.format(selected) : placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={selected}
+          captionLayout="dropdown"
+          onSelect={(date) => {
+            onChange(date ? dateToIso(date) : null);
+            setOpen(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -104,14 +82,14 @@ export function CandidatesDateFilter({ from, to, onChange, disabled }: Candidate
         value={from}
         onChange={(next) => onChange({ from: next, to })}
         disabled={disabled}
-        ariaLabel="Từ ngày"
+        placeholder="Từ ngày"
       />
       <span className="text-sm text-muted-foreground">–</span>
       <DateField
         value={to}
         onChange={(next) => onChange({ from, to: next })}
         disabled={disabled}
-        ariaLabel="Đến ngày"
+        placeholder="Đến ngày"
       />
     </div>
   );
