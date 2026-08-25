@@ -15,10 +15,8 @@ import { Switch } from '@/components/ui/switch';
 import { RECRUITMENT_CATEGORIES } from '@/constants/recruitment-categories';
 import { ContentEditor } from '@/features/group-posts/components/ContentEditor';
 import { ImagePicker } from '@/features/group-posts/components/ImagePicker';
-import {
-  useCreatePostTemplate,
-  useUpdatePostTemplate,
-} from '@/features/post-templates/hooks';
+import { useCreatePostTemplate, useUpdatePostTemplate } from '@/features/post-templates/hooks';
+import { ResourceImagePickerDialog } from '@/features/resources/components/ResourceImagePickerDialog';
 import type { PostTemplate } from '@/lib/supabase/types/tables';
 import { isHtmlContentEmpty } from '@/lib/utils/html-content';
 
@@ -27,6 +25,9 @@ type FormState = {
   content: string;
   is_active: boolean;
   image: File | null;
+  // Set when the image came from the resource library instead of a fresh
+  // upload — lets submit send `image_url` explicitly only in that case.
+  libraryImageUrl: string | null;
   previewUrl: string | null;
   clearImage: boolean;
 };
@@ -48,6 +49,7 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
     content: template?.content ?? '',
     is_active: template?.is_active ?? true,
     image: null,
+    libraryImageUrl: null,
     previewUrl: template?.image_url || null,
     clearImage: false,
   }));
@@ -79,6 +81,7 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
             is_active: form.is_active,
             image: form.image,
             clear_image: form.clearImage,
+            ...(form.libraryImageUrl ? { image_url: form.libraryImageUrl } : {}),
           },
         },
         { onSuccess },
@@ -88,7 +91,7 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
         {
           category: form.category as (typeof RECRUITMENT_CATEGORIES)[number],
           content: form.content,
-          image_url: '',
+          image_url: form.libraryImageUrl ?? '',
           is_active: form.is_active,
           image: form.image,
         },
@@ -151,7 +154,7 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
           />
         </div>
 
-        <div className="min-w-0 lg:sticky lg:top-4">
+        <div className="grid min-w-0 gap-2 lg:sticky lg:top-4">
           <ImagePicker
             previewUrl={form.previewUrl}
             disabled={submitting}
@@ -161,6 +164,7 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
                 return {
                   ...prev,
                   image: file,
+                  libraryImageUrl: null,
                   previewUrl: file ? URL.createObjectURL(file) : null,
                   clearImage: !file,
                 };
@@ -169,7 +173,28 @@ export function TemplateForm({ template, defaultCategory }: TemplateFormProps) {
             onClear={() => {
               setForm((prev) => {
                 if (prev.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(prev.previewUrl);
-                return { ...prev, image: null, previewUrl: null, clearImage: true };
+                return {
+                  ...prev,
+                  image: null,
+                  libraryImageUrl: null,
+                  previewUrl: null,
+                  clearImage: true,
+                };
+              });
+            }}
+          />
+          <ResourceImagePickerDialog
+            disabled={submitting}
+            onSelect={(picked) => {
+              setForm((prev) => {
+                if (prev.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(prev.previewUrl);
+                return {
+                  ...prev,
+                  image: null,
+                  libraryImageUrl: picked.url,
+                  previewUrl: picked.url,
+                  clearImage: false,
+                };
               });
             }}
           />

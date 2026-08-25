@@ -35,6 +35,7 @@ export function GroupPostForm() {
   const setContent = useGroupPostDraftStore((s) => s.setContent);
   const setRandomContent = useGroupPostDraftStore((s) => s.setRandomContent);
   const setImage = useGroupPostDraftStore((s) => s.setImage);
+  const setImageUrl = useGroupPostDraftStore((s) => s.setImageUrl);
   const applyTemplate = useGroupPostDraftStore((s) => s.applyTemplate);
   const clearImage = useGroupPostDraftStore((s) => s.clearImage);
   const clearDraft = useGroupPostDraftStore((s) => s.clearDraft);
@@ -132,6 +133,7 @@ export function GroupPostForm() {
           onImageChange={setImage}
           onClearImage={clearImage}
           onSelectTemplate={applyTemplate}
+          onSelectLibraryImage={(image) => setImageUrl(image.url)}
         />
 
         <PreviewPanel

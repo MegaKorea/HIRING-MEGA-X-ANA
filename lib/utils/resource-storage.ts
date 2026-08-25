@@ -46,18 +46,19 @@ function toImageInfo(folder: string, fileName: string, createdAt: string): Resou
   return { path, folder, name: slug.replace(/-/g, ' '), url: data.publicUrl, createdAt };
 }
 
-export async function listResourceFolders(): Promise<ResourceFolderInfo[]> {
+async function listResourceFolderNames(): Promise<string[]> {
   const { data, error } = await bucket().list(RESOURCES_ROOT, { limit: 1000 });
   if (error) fail('STORAGE_ERROR', HttpStatusCode.INTERNAL_SERVER_ERROR, error.message);
+  return (data ?? []).filter((item) => item.id === null).map((item) => item.name);
+}
 
-  const folders = (data ?? []).filter((item) => item.id === null);
+export async function listResourceFolders(): Promise<ResourceFolderInfo[]> {
+  const names = await listResourceFolderNames();
   const withCounts = await Promise.all(
-    folders.map(async (folder) => {
-      const { data: items } = await bucket().list(`${RESOURCES_ROOT}/${folder.name}`, {
-        limit: 1000,
-      });
+    names.map(async (name) => {
+      const { data: items } = await bucket().list(`${RESOURCES_ROOT}/${name}`, { limit: 1000 });
       const count = (items ?? []).filter((item) => item.name !== PLACEHOLDER).length;
-      return { name: folder.name, count };
+      return { name, count };
     }),
   );
 
@@ -101,13 +102,15 @@ export async function renameResourceFolder(
     fail('RESOURCE_FOLDER_NOT_FOUND', HttpStatusCode.NOT_FOUND, 'Không tìm thấy folder');
   }
 
-  for (const item of items) {
-    const { error: moveError } = await bucket().move(
-      `${RESOURCES_ROOT}/${from}/${item.name}`,
-      `${RESOURCES_ROOT}/${to}/${item.name}`,
-    );
-    if (moveError) fail('STORAGE_ERROR', HttpStatusCode.INTERNAL_SERVER_ERROR, moveError.message);
-  }
+  const moveErrors = await Promise.all(
+    items.map(({ name }) =>
+      bucket()
+        .move(`${RESOURCES_ROOT}/${from}/${name}`, `${RESOURCES_ROOT}/${to}/${name}`)
+        .then(({ error: moveError }) => moveError),
+    ),
+  );
+  const firstError = moveErrors.find(Boolean);
+  if (firstError) fail('STORAGE_ERROR', HttpStatusCode.INTERNAL_SERVER_ERROR, firstError.message);
 
   const count = items.filter((item) => item.name !== PLACEHOLDER).length;
   return { name: to, count };
@@ -129,9 +132,7 @@ export async function deleteResourceFolder(name: string): Promise<void> {
 }
 
 export async function listResourceImages(folder?: string | null): Promise<ResourceImageInfo[]> {
-  const folderNames = folder
-    ? [sanitizeSegment(folder)]
-    : (await listResourceFolders()).map((f) => f.name);
+  const folderNames = folder ? [sanitizeSegment(folder)] : await listResourceFolderNames();
 
   const grouped = await Promise.all(
     folderNames.map(async (folderName) => {

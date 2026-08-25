@@ -14,6 +14,8 @@ import { ContentEditor } from '@/features/group-posts/components/ContentEditor';
 import { ImagePicker } from '@/features/group-posts/components/ImagePicker';
 import { PostSubmitButton } from '@/features/group-posts/components/PostSubmitButton';
 import { TemplatePickerDialog } from '@/features/group-posts/components/TemplatePickerDialog';
+import { ResourceImagePickerDialog } from '@/features/resources/components/ResourceImagePickerDialog';
+import type { ResourceImage } from '@/features/resources/api';
 import type { PostTemplate } from '@/lib/supabase/types/tables';
 
 type ComposePanelProps = {
@@ -37,6 +39,7 @@ type ComposePanelProps = {
   onImageChange: (file: File | null) => void;
   onClearImage: () => void;
   onSelectTemplate: (template: PostTemplate) => void;
+  onSelectLibraryImage: (image: ResourceImage) => void;
 };
 
 export function ComposePanel({
@@ -60,6 +63,7 @@ export function ComposePanel({
   onImageChange,
   onClearImage,
   onSelectTemplate,
+  onSelectLibraryImage,
 }: ComposePanelProps) {
   return (
     <section className="grid min-w-0 content-start gap-4 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] sm:gap-5 sm:p-5 md:p-6 lg:rounded-none lg:border-0 lg:border-r lg:border-border lg:p-6 lg:shadow-none xl:p-8">
@@ -163,12 +167,15 @@ export function ComposePanel({
             />
           </div>
 
-          <ImagePicker
-            previewUrl={previewUrl}
-            disabled={submitting}
-            onChange={onImageChange}
-            onClear={onClearImage}
-          />
+          <div className="grid min-w-0 gap-2">
+            <ImagePicker
+              previewUrl={previewUrl}
+              disabled={submitting}
+              onChange={onImageChange}
+              onClear={onClearImage}
+            />
+            <ResourceImagePickerDialog disabled={submitting} onSelect={onSelectLibraryImage} />
+          </div>
         </>
       )}
 

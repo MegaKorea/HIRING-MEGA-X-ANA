@@ -11,7 +11,6 @@ export type PostLog = {
   ok: boolean;
   error: string | null;
   seeded: boolean;
-  /** null = chưa tới lượt check | 'alive' = còn sống (đã seeding) | 'removed' = bị gỡ */
   check_status: 'alive' | 'removed' | null;
   posted_at: string;
 };
